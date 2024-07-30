@@ -1,14 +1,19 @@
-# app.py
 import os
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import subprocess
 
 app = Flask(__name__, static_url_path='/static')
 
-UPLOAD_FOLDER = 'uploads'
-CONVERTED_FOLDER = 'converted'
+UPLOAD_FOLDER = '../uploads'
+CONVERTED_FOLDER = '../converted'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
+
+PRESETS = {
+    "low": {"resolution": "1280x720", "bitrate": "2M", "fps": "30", "format": "mp4"},
+    "medium": {"resolution": "1920x1080", "bitrate": "5M", "fps": "60", "format": "mp4"},
+    "high": {"resolution": "3840x2160", "bitrate": "10M", "fps": "60", "format": "mp4"}
+}
 
 def estimate_file_size(input_file, settings):
     duration_command = f"ffmpeg -i {input_file} 2>&1 | grep 'Duration' | awk '{{print $2}}' | tr -d ,"
@@ -17,7 +22,6 @@ def estimate_file_size(input_file, settings):
     hours, minutes, seconds = map(float, duration.split(':'))
     total_seconds = hours * 3600 + minutes * 60 + seconds
     
-    # Bitrate in bits per second (assuming settings['bitrate'] is like '1M' for 1 Mbps)
     bitrate = float(settings['bitrate'][:-1]) * 1_000_000 if 'M' in settings['bitrate'] else float(settings['bitrate'])
     
     estimated_size = (bitrate * total_seconds) / 8  # Convert bits to bytes
@@ -30,7 +34,8 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
-    settings = request.form.to_dict()
+    preset = request.form['preset']
+    settings = PRESETS[preset]
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(input_path)
     output_filename = f"converted_{file.filename}"
