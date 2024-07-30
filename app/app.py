@@ -2,8 +2,10 @@ import os
 import json
 import random
 import string
+import io
 from flask import Flask, request, jsonify, send_from_directory, render_template, after_this_request
 import subprocess
+from multiprocessing import Pool, cpu_count
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -18,63 +20,33 @@ PRESETS = {
     "high": {"scale": 1.0, "bitrate": "10M", "fps": "60", "format": "mp4"}
 }
 
-def get_video_resolution(input_file):
+def get_video_info(input_file):
     try:
         result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', input_file],
+            ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,duration', '-of', 'csv=p=0', input_file],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        width, height = map(int, result.stdout.decode().strip().split(','))
-        return width, height
+        width, height, duration = result.stdout.decode().strip().split(',')
+        return int(width), int(height), float(duration)
     except Exception as e:
-        app.logger.error(f'Error getting video resolution: {str(e)}')
-        return None, None
-
-def get_video_duration(input_file):
-    try:
-        result = subprocess.run(
-            ['ffmpeg', '-i', input_file],
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE
-        )
-        for line in result.stderr.decode().split('\n'):
-            if 'Duration' in line:
-                duration = line.split('Duration: ')[1].split(',')[0]
-                return duration
-        return None
-    except Exception as e:
-        app.logger.error(f'Error getting video duration: {str(e)}')
-        return None
+        app.logger.error(f'Error getting video info: {str(e)}')
+        return None, None, None
 
 def estimate_file_size(input_file, settings):
-    duration = get_video_duration(input_file)
-    if not duration:
-        return None
-    
-    try:
-        hours, minutes, seconds = map(float, duration.split(':'))
-        total_seconds = hours * 3600 + minutes * 60 + seconds
-    except ValueError as e:
-        app.logger.error(f'Error parsing video duration: {str(e)}')
-        return None
-
-    original_width, original_height = get_video_resolution(input_file)
-    if not original_width or not original_height:
+    width, height, duration = get_video_info(input_file)
+    if not width or not height or not duration:
         return None
     
     try:
         scale = float(settings['scale'])
-        new_width = int(original_width * scale)
-        new_height = int(original_height * scale)
+        new_width = int(width * scale)
+        new_height = int(height * scale)
         
         bitrate = float(settings['bitrate'][:-1]) * 1_000_000 if 'M' in settings['bitrate'] else float(settings['bitrate'])
         
-        # Estimated size in bytes
-        estimated_size = (bitrate * total_seconds) / 8
-        
-        # Adjust size based on resolution change
-        resolution_ratio = (new_width * new_height) / (original_width * original_height)
+        estimated_size = (bitrate * duration) / 8
+        resolution_ratio = (new_width * new_height) / (width * height)
         adjusted_size = estimated_size * resolution_ratio
         
         return adjusted_size
@@ -84,6 +56,17 @@ def estimate_file_size(input_file, settings):
 
 def generate_hex_hash(length=6):
     return ''.join(random.choices(string.hexdigits.lower(), k=length))
+
+def convert_video(args):
+    input_path, output_path, settings = args
+    width, height, _ = get_video_info(input_path)
+    scale = settings['scale']
+    new_width = int(width * scale)
+    new_height = int(height * scale)
+    
+    command = f"ffmpeg -y -i \"{input_path}\" -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} \"{output_path}\""
+    subprocess.run(command, shell=True, check=True)
+    return output_path
 
 @app.route('/')
 def index():
@@ -100,31 +83,22 @@ def upload_file():
     try:
         files = request.files.getlist('files')
         settings = json.loads(request.form['settings'])
+        tasks = []
         for file in files:
             input_path = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(input_path)
-            original_width, original_height = get_video_resolution(input_path)
-            if original_width is None or original_height is None:
-                return jsonify({"error": "Error retrieving video resolution"}), 500
-
-            # Berechne neue Auflösung basierend auf dem Preset
-            scale = settings['scale']
-            new_width = int(original_width * scale)
-            new_height = int(original_height * scale)
-
-            # Generate unique filename with hex hash
+            
             hex_hash = generate_hex_hash()
             base_name = file.filename.rsplit('.', 1)[0]
             output_filename = f"converted_{base_name}_{hex_hash}.{settings['format']}"
             output_path = os.path.join(CONVERTED_FOLDER, output_filename)
             
-            # Setze Dateipfade in Anführungszeichen
-            command = f"ffmpeg -y -i \"{input_path}\" -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} \"{output_path}\""
-            app.logger.info(f'Running command: {command}')
-            subprocess.run(command, shell=True, check=True)
-            
+            tasks.append((input_path, output_path, settings))
             input_paths.append(input_path)
             output_paths.append(output_path)
+
+        with Pool(cpu_count()) as pool:
+            pool.map(convert_video, tasks)
 
         estimated_size = sum([estimate_file_size(path, settings) for path in input_paths])
         for path in input_paths:
