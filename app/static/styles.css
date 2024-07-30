@@ -85,7 +85,6 @@ h1 {
 }
 
 .result {
-    margin-top: 20px;
     word-wrap: break-word;
     overflow: hidden;
     text-overflow: ellipsis;
