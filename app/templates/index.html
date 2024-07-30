@@ -16,21 +16,89 @@
             </div>
             <div class="form-group">
                 <label for="preset">Preset:</label>
-                <select id="preset" name="preset" class="input">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                <select id="preset" name="preset" class="input" onchange="updateSettings()">
+                    <option value="low">Low (720p30, mp4)</option>
+                    <option value="medium">Medium (1080p60, mp4)</option>
+                    <option value="high">High (4k60, mp4)</option>
+                    <option value="custom">Custom</option>
                 </select>
+            </div>
+            <div id="customSettings" style="display: none;">
+                <div class="form-group">
+                    <label for="resolution">Resolution:</label>
+                    <input type="text" id="resolution" name="resolution" placeholder="e.g., 1280x720" class="input">
+                </div>
+                <div class="form-group">
+                    <label for="bitrate">Bitrate:</label>
+                    <input type="text" id="bitrate" name="bitrate" placeholder="e.g., 1M" class="input">
+                </div>
+                <div class="form-group">
+                    <label for="fps">FPS:</label>
+                    <input type="text" id="fps" name="fps" placeholder="e.g., 30" class="input">
+                </div>
+                <div class="form-group">
+                    <label for="format">Format:</label>
+                    <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input">
+                </div>
             </div>
             <button type="submit" class="button">Upload and Convert</button>
         </form>
+        <div id="estimate" class="result"></div>
         <div id="result" class="result"></div>
     </div>
 
     <script>
+        const presets = {
+            low: {resolution: '1280x720', bitrate: '2M', fps: '30', format: 'mp4'},
+            medium: {resolution: '1920x1080', bitrate: '5M', fps: '60', format: 'mp4'},
+            high: {resolution: '3840x2160', bitrate: '10M', fps: '60', format: 'mp4'}
+        };
+
+        function updateSettings() {
+            const preset = document.getElementById('preset').value;
+            if (preset === 'custom') {
+                document.getElementById('customSettings').style.display = 'block';
+                document.getElementById('estimate').innerHTML = '';
+            } else {
+                document.getElementById('customSettings').style.display = 'none';
+                const settings = presets[preset];
+                estimateFileSize(settings);
+            }
+        }
+
+        async function estimateFileSize(settings) {
+            const file = document.getElementById('file').files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('settings', JSON.stringify(settings));
+                const response = await fetch('/estimate', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                document.getElementById('estimate').innerHTML = `
+                    <p>Estimated Size: ${(result.estimated_size / (1024 * 1024)).toFixed(2)} MB</p>
+                `;
+            }
+        }
+
         document.getElementById('uploadForm').onsubmit = async function(event) {
             event.preventDefault();
+            const preset = document.getElementById('preset').value;
+            let settings = {};
+            if (preset === 'custom') {
+                settings = {
+                    resolution: document.getElementById('resolution').value,
+                    bitrate: document.getElementById('bitrate').value,
+                    fps: document.getElementById('fps').value,
+                    format: document.getElementById('format').value
+                };
+            } else {
+                settings = presets[preset];
+            }
             const formData = new FormData(this);
+            formData.append('settings', JSON.stringify(settings));
             const response = await fetch('/upload', {
                 method: 'POST',
                 body: formData
