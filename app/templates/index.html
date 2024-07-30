@@ -12,7 +12,7 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="file">Choose file:</label>
-                <input type="file" id="file" name="file" class="input" onchange="updateSettings()">
+                <input type="file" id="file" name="file" class="input" onchange="updateEstimate()">
             </div>
             <div class="form-group">
                 <label for="preset">Preset:</label>
@@ -26,25 +26,25 @@
             <div id="customSettings" style="display: none;">
                 <div class="form-group">
                     <label for="resolution">Resolution:</label>
-                    <input type="text" id="resolution" name="resolution" placeholder="e.g., 1280x720" class="input" oninput="estimateCustomSize()">
+                    <input type="text" id="resolution" name="resolution" placeholder="e.g., 1280x720" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
                     <label for="bitrate">Bitrate:</label>
-                    <input type="text" id="bitrate" name="bitrate" placeholder="e.g., 1M" class="input" oninput="estimateCustomSize()">
+                    <input type="text" id="bitrate" name="bitrate" placeholder="e.g., 1M" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
                     <label for="fps">FPS:</label>
-                    <input type="text" id="fps" name="fps" placeholder="e.g., 30" class="input" oninput="estimateCustomSize()">
+                    <input type="text" id="fps" name="fps" placeholder="e.g., 30" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
                     <label for="format">Format:</label>
-                    <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input" oninput="estimateCustomSize()">
+                    <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input" oninput="updateEstimate()">
                 </div>
             </div>
-            <button type="submit" class="button">Upload and Convert</button>
+            <button type="submit" class="button" id="convertButton">Upload and Convert</button>
         </form>
-        <div id="status" class="result"></div>
         <div id="estimate" class="result"></div>
+        <div id="result" class="result"></div>
     </div>
 
     <script>
@@ -65,18 +65,28 @@
                 document.getElementById('bitrate').value = lastSettings.bitrate;
                 document.getElementById('fps').value = lastSettings.fps;
                 document.getElementById('format').value = lastSettings.format;
-                document.getElementById('estimate').innerHTML = '';
             } else {
                 document.getElementById('customSettings').style.display = 'none';
-                const settings = presets[preset];
                 lastPreset = preset;
-                estimateFileSize(settings);
             }
+            updateEstimate();
         }
 
-        async function estimateFileSize(settings) {
+        async function updateEstimate() {
             const file = document.getElementById('file').files[0];
             if (file) {
+                let settings;
+                const preset = document.getElementById('preset').value;
+                if (preset === 'custom') {
+                    settings = {
+                        resolution: document.getElementById('resolution').value,
+                        bitrate: document.getElementById('bitrate').value,
+                        fps: document.getElementById('fps').value,
+                        format: document.getElementById('format').value
+                    };
+                } else {
+                    settings = presets[preset];
+                }
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('settings', JSON.stringify(settings));
@@ -91,22 +101,12 @@
             }
         }
 
-        async function estimateCustomSize() {
-            const preset = document.getElementById('preset').value;
-            if (preset === 'custom') {
-                const settings = {
-                    resolution: document.getElementById('resolution').value,
-                    bitrate: document.getElementById('bitrate').value,
-                    fps: document.getElementById('fps').value,
-                    format: document.getElementById('format').value
-                };
-                await estimateFileSize(settings);
-            }
-        }
-
         document.getElementById('uploadForm').onsubmit = async function(event) {
             event.preventDefault();
-            document.getElementById('status').innerHTML = 'Converting...';
+            const convertButton = document.getElementById('convertButton');
+            convertButton.innerText = 'Converting...';
+            convertButton.disabled = true;
+            
             const preset = document.getElementById('preset').value;
             let settings = {};
             if (preset === 'custom') {
@@ -127,15 +127,23 @@
                     body: formData
                 });
                 const result = await response.json();
-                const link = document.createElement('a');
-                link.href = `/download/${result.output_file}`;
-                link.download = result.output_file;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                document.getElementById('status').innerHTML = 'Conversion complete!';
+                if (response.ok) {
+                    const link = document.createElement('a');
+                    link.href = `/download/${result.output_file}`;
+                    link.download = result.output_file;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    convertButton.innerText = 'Upload and Convert';
+                } else {
+                    document.getElementById('result').innerHTML = `<p>Error: ${result.error}</p>`;
+                    convertButton.innerText = 'Upload and Convert';
+                }
             } catch (error) {
-                document.getElementById('status').innerHTML = 'An error occurred during conversion.';
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+                convertButton.innerText = 'Upload and Convert';
+            } finally {
+                convertButton.disabled = false;
             }
         }
     </script>
