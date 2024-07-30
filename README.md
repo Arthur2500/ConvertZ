@@ -5,7 +5,9 @@ A video conversion webapp using ffmpeg, 100% written by ChatGPT (https://chatgpt
 https://convert.ziemlich-schnell.de
 
 ## How to run:
-```docker run -d -p 5000:5000 ghcr.io/YOUR_GITHUB_USERNAME/convertz:latest```
+```
+docker run -d -p 5000:5000 ghcr.io/YOUR_GITHUB_USERNAME/convertz:latest
+```
 
 ## Screenshots
 ![grafik](https://github.com/user-attachments/assets/d01b7699-d2c3-4ab3-8758-a3ffec29c870)
