@@ -11,10 +11,26 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
 PRESETS = {
-    "low": {"resolution": "1280x720", "bitrate": "2M", "fps": "30", "format": "mp4"},
-    "medium": {"resolution": "1920x1080", "bitrate": "5M", "fps": "60", "format": "mp4"},
-    "high": {"resolution": "3840x2160", "bitrate": "10M", "fps": "60", "format": "mp4"}
+    "low": {"scale": 0.5, "bitrate": "2M", "fps": "30", "format": "mp4"},
+    "medium": {"scale": 0.75, "bitrate": "5M", "fps": "60", "format": "mp4"},
+    "high": {"scale": 1.0, "bitrate": "10M", "fps": "60", "format": "mp4"}
 }
+
+def get_video_resolution(input_file):
+    try:
+        result = subprocess.run(
+            ['ffmpeg', '-i', input_file],
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE
+        )
+        for line in result.stderr.decode().split('\n'):
+            if 'Stream' in line and 'Video' in line:
+                resolution = line.split(',')[2].split(' ')[3]
+                width, height = map(int, resolution.split('x'))
+                return width, height
+        return None, None
+    except Exception as e:
+        return None, None
 
 def get_video_duration(input_file):
     try:
@@ -57,10 +73,20 @@ def upload_file():
         settings = json.loads(request.form['settings'])
         input_path = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(input_path)
+        original_width, original_height = get_video_resolution(input_path)
+        
+        if original_width is None or original_height is None:
+            return jsonify({"error": "Error retrieving video resolution"}), 500
+
+        # Berechne neue Auflösung basierend auf dem Preset
+        scale = settings['scale']
+        new_width = int(original_width * scale)
+        new_height = int(original_height * scale)
+        
         output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
         output_path = os.path.join(CONVERTED_FOLDER, output_filename)
         
-        command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
+        command = f"ffmpeg -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
         subprocess.run(command, shell=True, check=True)
         
         estimated_size = estimate_file_size(output_path, settings)
