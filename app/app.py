@@ -34,36 +34,47 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    file = request.files['file']
-    settings = json.loads(request.form['settings'])
-    input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(input_path)
-    output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
-    output_path = os.path.join(CONVERTED_FOLDER, output_filename)
-    
-    command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
-    subprocess.run(command, shell=True)
-    
-    # Lösche die Dateien nach der Konvertierung
-    os.remove(input_path)
-    response = jsonify({
-        "estimated_size": estimate_file_size(input_path, settings),
-        "output_file": output_filename
-    })
-    response.headers['Content-Disposition'] = f'attachment; filename={output_filename}'
-    return response
+    try:
+        file = request.files['file']
+        settings = json.loads(request.form['settings'])
+        input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(input_path)
+        output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
+        output_path = os.path.join(CONVERTED_FOLDER, output_filename)
+        
+        command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
+        subprocess.run(command, shell=True, check=True)
+        
+        estimated_size = estimate_file_size(input_path, settings)
+        os.remove(input_path)
+        response = jsonify({
+            "estimated_size": estimated_size,
+            "output_file": output_filename
+        })
+        response.headers['Content-Disposition'] = f'attachment; filename={output_filename}'
+        return response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if os.path.exists(input_path):
+            os.remove(input_path)
+        if os.path.exists(output_path):
+            os.remove(output_path)
 
 @app.route('/estimate', methods=['POST'])
 def estimate():
-    file = request.files['file']
-    settings = json.loads(request.form['settings'])
-    input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(input_path)
-    estimated_size = estimate_file_size(input_path, settings)
-    os.remove(input_path)  # Remove the file after estimating size
-    return jsonify({
-        "estimated_size": estimated_size
-    })
+    try:
+        file = request.files['file']
+        settings = json.loads(request.form['settings'])
+        input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(input_path)
+        estimated_size = estimate_file_size(input_path, settings)
+        os.remove(input_path)  # Remove the file after estimating size
+        return jsonify({
+            "estimated_size": estimated_size
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
