@@ -53,14 +53,10 @@ h1 {
     text-overflow: ellipsis;
 }
 
-.file-names {
+.file-count {
     font-size: 14px;
     color: #333;
     margin-top: 5px;
-    word-wrap: break-word;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: 100px;
 }
 
 .button {
