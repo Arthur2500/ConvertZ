@@ -6,7 +6,13 @@ https://convert.ziemlich-schnell.de
 
 ## How to run:
 ```
-docker run -d -p 5000:5000 ghcr.io/arthur2500/convertz:latest
+docker run --name convertz -d -p 5000:5000 ghcr.io/arthur2500/convertz:latest
+```
+or
+```
+git clone https://github.com/Arthur2500/ConvertZ.git &&
+cd ConvertZ &&
+docker-compose up -d
 ```
 
 ## Screenshots
