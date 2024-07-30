@@ -49,9 +49,9 @@
 
     <script>
         const presets = {
-            low: {resolution: '1280x720', bitrate: '2M', fps: '30', format: 'mp4'},
-            medium: {resolution: '1920x1080', bitrate: '5M', fps: '60', format: 'mp4'},
-            high: {resolution: '3840x2160', bitrate: '10M', fps: '60', format: 'mp4'}
+            low: {scale: 0.5, bitrate: '2M', fps: '30', format: 'mp4'},
+            medium: {scale: 0.75, bitrate: '5M', fps: '60', format: 'mp4'},
+            high: {scale: 1.0, bitrate: '10M', fps: '60', format: 'mp4'}
         };
 
         let lastPreset = 'low';
