@@ -52,7 +52,7 @@ def estimate_file_size(input_file, settings):
     total_seconds = hours * 3600 + minutes * 60 + seconds
     
     original_width, original_height = get_video_resolution(input_file)
-    if not original_width or original_height is None:
+    if not original_width or not original_height:
         return None
     
     scale = settings['scale']
