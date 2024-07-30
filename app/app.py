@@ -28,6 +28,7 @@ def get_video_resolution(input_file):
         width, height = map(int, result.stdout.decode().strip().split(','))
         return width, height
     except Exception as e:
+        app.logger.error(f'Error getting video resolution: {str(e)}')
         return None, None
 
 def get_video_duration(input_file):
@@ -43,6 +44,7 @@ def get_video_duration(input_file):
                 return duration
         return None
     except Exception as e:
+        app.logger.error(f'Error getting video duration: {str(e)}')
         return None
 
 def estimate_file_size(input_file, settings):
@@ -53,7 +55,8 @@ def estimate_file_size(input_file, settings):
     try:
         hours, minutes, seconds = map(float, duration.split(':'))
         total_seconds = hours * 3600 + minutes * 60 + seconds
-    except ValueError:
+    except ValueError as e:
+        app.logger.error(f'Error parsing video duration: {str(e)}')
         return None
 
     original_width, original_height = get_video_resolution(input_file)
@@ -75,7 +78,8 @@ def estimate_file_size(input_file, settings):
         adjusted_size = estimated_size * resolution_ratio
         
         return adjusted_size
-    except (ValueError, KeyError):
+    except (ValueError, KeyError) as e:
+        app.logger.error(f'Error estimating file size: {str(e)}')
         return None
 
 def generate_hex_hash(length=6):
@@ -115,6 +119,7 @@ def upload_file():
             output_path = os.path.join(CONVERTED_FOLDER, output_filename)
             
             command = f"ffmpeg -y -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
+            app.logger.info(f'Running command: {command}')
             subprocess.run(command, shell=True, check=True)
             
             input_paths.append(input_path)
@@ -122,7 +127,8 @@ def upload_file():
 
         estimated_size = sum([estimate_file_size(path, settings) for path in input_paths])
         for path in input_paths:
-            os.remove(path)
+            if os.path.exists(path):
+                os.remove(path)
 
         response = jsonify({
             "estimated_size": estimated_size,
@@ -131,6 +137,7 @@ def upload_file():
         response.headers['Content-Disposition'] = 'attachment'
         return response
     except subprocess.CalledProcessError as e:
+        app.logger.error(f'Conversion error: {str(e)}')
         for path in input_paths:
             if os.path.exists(path):
                 os.remove(path)
@@ -139,6 +146,7 @@ def upload_file():
                 os.remove(path)
         return jsonify({"error": f"Conversion error: {str(e)}"}), 500
     except Exception as e:
+        app.logger.error(f'Unexpected error: {str(e)}')
         for path in input_paths:
             if os.path.exists(path):
                 os.remove(path)
@@ -164,6 +172,7 @@ def estimate():
             "estimated_size": total_estimated_size if total_estimated_size else "Error calculating size"
         })
     except Exception as e:
+        app.logger.error(f'Unexpected error: {str(e)}')
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 @app.route('/download/<filename>', methods=['GET'])
