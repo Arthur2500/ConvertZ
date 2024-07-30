@@ -54,14 +54,22 @@
             high: {resolution: '3840x2160', bitrate: '10M', fps: '60', format: 'mp4'}
         };
 
+        let lastPreset = 'low';
+
         function updateSettings() {
             const preset = document.getElementById('preset').value;
             if (preset === 'custom') {
                 document.getElementById('customSettings').style.display = 'block';
+                const lastSettings = presets[lastPreset];
+                document.getElementById('resolution').value = lastSettings.resolution;
+                document.getElementById('bitrate').value = lastSettings.bitrate;
+                document.getElementById('fps').value = lastSettings.fps;
+                document.getElementById('format').value = lastSettings.format;
                 document.getElementById('estimate').innerHTML = '';
             } else {
                 document.getElementById('customSettings').style.display = 'none';
                 const settings = presets[preset];
+                lastPreset = preset;
                 estimateFileSize(settings);
             }
         }
