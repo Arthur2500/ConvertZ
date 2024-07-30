@@ -43,8 +43,8 @@
             </div>
             <button type="submit" class="button">Upload and Convert</button>
         </form>
+        <div id="status" class="result"></div>
         <div id="estimate" class="result"></div>
-        <div id="result" class="result"></div>
     </div>
 
     <script>
@@ -106,6 +106,7 @@
 
         document.getElementById('uploadForm').onsubmit = async function(event) {
             event.preventDefault();
+            document.getElementById('status').innerHTML = 'Converting...';
             const preset = document.getElementById('preset').value;
             let settings = {};
             if (preset === 'custom') {
@@ -120,17 +121,22 @@
             }
             const formData = new FormData(this);
             formData.append('settings', JSON.stringify(settings));
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            const link = document.createElement('a');
-            link.href = `/download/${result.output_file}`;
-            link.download = result.output_file;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                const link = document.createElement('a');
+                link.href = `/download/${result.output_file}`;
+                link.download = result.output_file;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                document.getElementById('status').innerHTML = 'Conversion complete!';
+            } catch (error) {
+                document.getElementById('status').innerHTML = 'An error occurred during conversion.';
+            }
         }
     </script>
 </body>
