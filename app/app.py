@@ -51,10 +51,24 @@ def estimate_file_size(input_file, settings):
     hours, minutes, seconds = map(float, duration.split(':'))
     total_seconds = hours * 3600 + minutes * 60 + seconds
     
+    original_width, original_height = get_video_resolution(input_file)
+    if not original_width or not original_height:
+        return None
+    
+    scale = settings['scale']
+    new_width = int(original_width * scale)
+    new_height = int(original_height * scale)
+    
     bitrate = float(settings['bitrate'][:-1]) * 1_000_000 if 'M' in settings['bitrate'] else float(settings['bitrate'])
     
-    estimated_size = (bitrate * total_seconds) / 8  # Convert bits to bytes
-    return estimated_size
+    # Estimated size in bytes
+    estimated_size = (bitrate * total_seconds) / 8
+    
+    # Adjust size based on resolution change
+    resolution_ratio = (new_width * new_height) / (original_width * original_height)
+    adjusted_size = estimated_size * resolution_ratio
+    
+    return adjusted_size
 
 @app.route('/')
 def index():
@@ -85,7 +99,7 @@ def upload_file():
         command = f"ffmpeg -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
         subprocess.run(command, shell=True, check=True)
         
-        estimated_size = estimate_file_size(output_path, settings)
+        estimated_size = estimate_file_size(input_path, settings)
         os.remove(input_path)
         
         response = jsonify({
