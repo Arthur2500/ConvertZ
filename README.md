@@ -6,7 +6,7 @@ https://convert.ziemlich-schnell.de
 
 ## How to run:
 ```
-docker run -d -p 5000:5000 ghcr.io/YOUR_GITHUB_USERNAME/convertz:latest
+docker run -d -p 5000:5000 ghcr.io/arthur2500/convertz:latest
 ```
 
 ## Screenshots
