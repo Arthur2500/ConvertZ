@@ -5,49 +5,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ConvertZ</title>
     <link rel="stylesheet" href="static/styles.css">
+    <link rel="icon" href="static/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
         <h1>ConvertZ</h1>
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="file">Choose file:</label>
-                <input type="file" id="file" name="file" class="input">
+                <label for="files" class="label">Choose files:</label>
+                <input type="file" id="files" name="files" class="input" multiple onchange="updateFileCount()">
+                <div id="fileCount" class="file-count"></div>
             </div>
             <div class="form-group">
-                <label for="resolution">Resolution:</label>
-                <input type="text" id="resolution" name="resolution" placeholder="e.g., 1280x720" class="input">
+                <label for="preset" class="label">Preset:</label>
+                <select id="preset" name="preset" class="input" onchange="updateSettings()">
+                    <option value="low">Low (0.5x, mp4)</option>
+                    <option value="medium">Medium (0.75x, mp4)</option>
+                    <option value="high">High (1.0x, mp4)</option>
+                    <option value="custom">Custom</option>
+                </select>
             </div>
-            <div class="form-group">
-                <label for="bitrate">Bitrate:</label>
-                <input type="text" id="bitrate" name="bitrate" placeholder="e.g., 1M" class="input">
+            <div id="customSettings" style="display: none;">
+                <div class="form-group">
+                    <label for="scale" class="label">Scale:</label>
+                    <input type="text" id="scale" name="scale" placeholder="e.g., 0.65" class="input" oninput="updateEstimate()">
+                </div>
+                <div class="form-group">
+                    <label for="bitrate" class="label">Bitrate:</label>
+                    <input type="text" id="bitrate" name="bitrate" placeholder="e.g., 1M" class="input" oninput="updateEstimate()">
+                </div>
+                <div class="form-group">
+                    <label for="fps" class="label">FPS:</label>
+                    <input type="text" id="fps" name="fps" placeholder="e.g., 30" class="input" oninput="updateEstimate()">
+                </div>
+                <div class="form-group">
+                    <label for="format" class="label">Format:</label>
+                    <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input" oninput="updateEstimate()">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="fps">FPS:</label>
-                <input type="text" id="fps" name="fps" placeholder="e.g., 30" class="input">
-            </div>
-            <div class="form-group">
-                <label for="format">Format:</label>
-                <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input">
-            </div>
-            <button type="submit" class="button">Upload and Convert</button>
+            <button type="submit" class="button" id="convertButton" disabled>Upload and Convert</button>
         </form>
+        <div id="estimate" class="result"></div>
         <div id="result" class="result"></div>
     </div>
 
+    <footer>
+        <p><a href="privacy.html" target="_blank">Privacy Policy</a></p>
+        <p><a href="https://github.com/Arthur2500/ConvertZ" target="_blank">Source Code</a></p>
+    </footer>
+
     <script>
+        const presets = {
+            low: {scale: 0.5, bitrate: '2M', fps: '30', format: 'mp4'},
+            medium: {scale: 0.75, bitrate: '5M', fps: '60', format: 'mp4'},
+            high: {scale: 1.0, bitrate: '10M', fps: '60', format: 'mp4'}
+        };
+
+        let lastPreset = 'low';
+
+        function updateFileCount() {
+            const fileInput = document.getElementById('files');
+            const fileCountDiv = document.getElementById('fileCount');
+            const files = fileInput.files;
+            fileCountDiv.innerHTML = `${files.length} file(s) selected`;
+
+            updateEstimate();
+        }
+
+        function updateSettings() {
+            const preset = document.getElementById('preset').value;
+            if (preset === 'custom') {
+                document.getElementById('customSettings').style.display = 'block';
+                const lastSettings = presets[lastPreset];
+                document.getElementById('scale').value = lastSettings.scale;
+                document.getElementById('bitrate').value = lastSettings.bitrate;
+                document.getElementById('fps').value = lastSettings.fps;
+                document.getElementById('format').value = lastSettings.format;
+            } else {
+                document.getElementById('customSettings').style.display = 'none';
+                lastPreset = preset;
+            }
+            updateEstimate();
+        }
+
+        async function updateEstimate() {
+            const fileInput = document.getElementById('files');
+            const files = fileInput.files;
+            if (files.length > 0) {
+                let settings;
+                const preset = document.getElementById('preset').value;
+                if (preset === 'custom') {
+                    settings = {
+                        scale: parseFloat(document.getElementById('scale').value),
+                        bitrate: document.getElementById('bitrate').value,
+                        fps: document.getElementById('fps').value,
+                        format: document.getElementById('format').value
+                    };
+                } else {
+                    settings = presets[preset];
+                }
+                const formData = new FormData();
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]);
+                }
+                formData.append('settings', JSON.stringify(settings));
+                const response = await fetch('/estimate', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.estimated_size && !isNaN(result.estimated_size)) {
+                    document.getElementById('estimate').innerHTML = `
+                        <p>Estimated Size: ${(result.estimated_size / (1024 * 1024)).toFixed(2)} MB</p>
+                    `;
+                    document.getElementById('convertButton').disabled = false;
+                } else {
+                    document.getElementById('estimate').innerHTML = `<p>Error calculating size</p>`;
+                    document.getElementById('convertButton').disabled = true;
+                }
+            }
+        }
+
         document.getElementById('uploadForm').onsubmit = async function(event) {
             event.preventDefault();
+            const convertButton = document.getElementById('convertButton');
+            convertButton.innerText = 'Converting...';
+            convertButton.disabled = true;
+
+            const preset = document.getElementById('preset').value;
+            let settings = {};
+            if (preset === 'custom') {
+                settings = {
+                    scale: parseFloat(document.getElementById('scale').value),
+                    bitrate: document.getElementById('bitrate').value,
+                    fps: document.getElementById('fps').value,
+                    format: document.getElementById('format').value
+                };
+            } else {
+                settings = presets[preset];
+            }
             const formData = new FormData(this);
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            document.getElementById('result').innerHTML = `
-                <p>Estimated Size: ${(result.estimated_size / (1024 * 1024)).toFixed(2)} MB</p>
-                <a href="/download/${result.output_file}" class="download-link">Download Converted Video</a>
-            `;
+            for (let i = 0; i < document.getElementById('files').files.length; i++) {
+                formData.append('files', document.getElementById('files').files[i]);
+            }
+            formData.append('settings', JSON.stringify(settings));
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    result.output_files.forEach(file => {
+                        const link = document.createElement('a');
+                        link.href = `/download/${file}`;
+                        link.download = file;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                    convertButton.innerText = 'Upload and Convert';
+                } else {
+                    document.getElementById('result').innerHTML = `<p>Error: ${result.error}</p>`;
+                    convertButton.innerText = 'Upload and Convert';
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+                convertButton.innerText = 'Upload and Convert';
+            } finally {
+                convertButton.disabled = false;
+            }
         }
     </script>
 </body>
