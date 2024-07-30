@@ -64,8 +64,26 @@ def convert_video(args):
     new_width = int(width * scale)
     new_height = int(height * scale)
     
-    command = f"ffmpeg -y -i \"{input_path}\" -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} \"{output_path}\""
-    subprocess.run(command, shell=True, check=True)
+    command = [
+        'ffmpeg', '-y', '-i', input_path,
+        '-vf', f'scale={new_width}:{new_height}',
+        '-b:v', settings['bitrate'],
+        '-r', settings['fps'],
+        '-f', settings['format'],
+        output_path
+    ]
+    
+    process = subprocess.Popen(command, stderr=subprocess.PIPE)
+    while True:
+        output = process.stderr.readline()
+        if process.poll() is not None:
+            break
+        if output:
+            app.logger.info(output.decode().strip())
+    
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode, command)
+    
     return output_path
 
 @app.route('/')
@@ -105,12 +123,12 @@ def upload_file():
             if os.path.exists(path):
                 os.remove(path)
 
-        response = jsonify({
+        response_data = {
             "estimated_size": estimated_size,
             "output_files": [os.path.basename(path) for path in output_paths]
-        })
-        response.headers['Content-Disposition'] = 'attachment'
-        return response
+        }
+
+        return jsonify(response_data)
     except subprocess.CalledProcessError as e:
         app.logger.error(f'Conversion error: {str(e)}')
         for path in input_paths:
