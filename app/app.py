@@ -38,16 +38,20 @@ def upload_file():
     settings = json.loads(request.form['settings'])
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(input_path)
-    output_filename = f"converted_{file.filename}"
+    output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
     output_path = os.path.join(CONVERTED_FOLDER, output_filename)
     
     command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
     subprocess.run(command, shell=True)
     
-    return jsonify({
+    # Lösche die Dateien nach der Konvertierung
+    os.remove(input_path)
+    response = jsonify({
         "estimated_size": estimate_file_size(input_path, settings),
         "output_file": output_filename
     })
+    response.headers['Content-Disposition'] = f'attachment; filename={output_filename}'
+    return response
 
 @app.route('/estimate', methods=['POST'])
 def estimate():
