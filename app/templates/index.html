@@ -12,9 +12,9 @@
         <h1>ConvertZ</h1>
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="file" class="label">Choose file:</label>
-                <input type="file" id="file" name="file" class="input" onchange="updateFileName()">
-                <div id="fileName" class="file-name"></div>
+                <label for="files" class="label">Choose files:</label>
+                <input type="file" id="files" name="files" class="input" multiple onchange="updateFileNames()">
+                <div id="fileNames" class="file-names"></div>
             </div>
             <div class="form-group">
                 <label for="preset" class="label">Preset:</label>
@@ -62,17 +62,16 @@
 
         let lastPreset = 'low';
 
-        function updateFileName() {
-            const fileInput = document.getElementById('file');
-            const fileNameDiv = document.getElementById('fileName');
-            const fileName = fileInput.files[0].name;
+        function updateFileNames() {
+            const fileInput = document.getElementById('files');
+            const fileNamesDiv = document.getElementById('fileNames');
+            const files = fileInput.files;
+            fileNamesDiv.innerHTML = '';
 
-            if (fileName.length > 20) {
-                const start = fileName.substring(0, 10);
-                const end = fileName.substring(fileName.length - 10, fileName.length);
-                fileNameDiv.textContent = `${start}...${end}`;
-            } else {
-                fileNameDiv.textContent = fileName;
+            for (let i = 0; i < files.length; i++) {
+                const fileName = document.createElement('div');
+                fileName.textContent = files[i].name;
+                fileNamesDiv.appendChild(fileName);
             }
 
             updateEstimate();
@@ -95,8 +94,9 @@
         }
 
         async function updateEstimate() {
-            const file = document.getElementById('file').files[0];
-            if (file) {
+            const fileInput = document.getElementById('files');
+            const files = fileInput.files;
+            if (files.length > 0) {
                 let settings;
                 const preset = document.getElementById('preset').value;
                 if (preset === 'custom') {
@@ -110,7 +110,9 @@
                     settings = presets[preset];
                 }
                 const formData = new FormData();
-                formData.append('file', file);
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]);
+                }
                 formData.append('settings', JSON.stringify(settings));
                 const response = await fetch('/estimate', {
                     method: 'POST',
@@ -134,7 +136,7 @@
             const convertButton = document.getElementById('convertButton');
             convertButton.innerText = 'Converting...';
             convertButton.disabled = true;
-            
+
             const preset = document.getElementById('preset').value;
             let settings = {};
             if (preset === 'custom') {
@@ -148,6 +150,9 @@
                 settings = presets[preset];
             }
             const formData = new FormData(this);
+            for (let i = 0; i < document.getElementById('files').files.length; i++) {
+                formData.append('files', document.getElementById('files').files[i]);
+            }
             formData.append('settings', JSON.stringify(settings));
             try {
                 const response = await fetch('/upload', {
@@ -156,12 +161,14 @@
                 });
                 const result = await response.json();
                 if (response.ok) {
-                    const link = document.createElement('a');
-                    link.href = `/download/${result.output_file}`;
-                    link.download = result.output_file;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    result.output_files.forEach(file => {
+                        const link = document.createElement('a');
+                        link.href = `/download/${file}`;
+                        link.download = file;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
                     convertButton.innerText = 'Upload and Convert';
                 } else {
                     document.getElementById('result').innerHTML = `<p>Error: ${result.error}</p>`;
