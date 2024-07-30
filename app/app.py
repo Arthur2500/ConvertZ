@@ -52,7 +52,7 @@ def estimate_file_size(input_file, settings):
     total_seconds = hours * 3600 + minutes * 60 + seconds
     
     original_width, original_height = get_video_resolution(input_file)
-    if not original_width or not original_height:
+    if not original_width or original_height is None:
         return None
     
     scale = settings['scale']
@@ -73,6 +73,10 @@ def estimate_file_size(input_file, settings):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/privacy.html')
+def privacy():
+    return render_template('privacy.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
