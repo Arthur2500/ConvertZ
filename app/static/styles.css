@@ -57,6 +57,12 @@ h1 {
     background-color: #005bb5;
 }
 
+}
+.button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 .result {
     margin-top: 20px;
 }
