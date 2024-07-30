@@ -53,6 +53,12 @@ h1 {
     text-overflow: ellipsis;
 }
 
+.file-name {
+    font-size: 14px;
+    color: #333;
+    margin-top: 5px;
+}
+
 .button {
     background-color: #007aff;
     color: white;
