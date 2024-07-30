@@ -42,7 +42,7 @@
                     <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input" oninput="updateEstimate()">
                 </div>
             </div>
-            <button type="submit" class="button" id="convertButton">Upload and Convert</button>
+            <button type="submit" class="button" id="convertButton" disabled>Upload and Convert</button>
         </form>
         <div id="estimate" class="result"></div>
         <div id="result" class="result"></div>
@@ -100,9 +100,15 @@
                     body: formData
                 });
                 const result = await response.json();
-                document.getElementById('estimate').innerHTML = `
-                    <p>Estimated Size: ${(result.estimated_size / (1024 * 1024)).toFixed(2)} MB</p>
-                `;
+                if (result.estimated_size && !isNaN(result.estimated_size)) {
+                    document.getElementById('estimate').innerHTML = `
+                        <p>Estimated Size: ${(result.estimated_size / (1024 * 1024)).toFixed(2)} MB</p>
+                    `;
+                    document.getElementById('convertButton').disabled = false;
+                } else {
+                    document.getElementById('estimate').innerHTML = `<p>Error calculating size</p>`;
+                    document.getElementById('convertButton').disabled = true;
+                }
             }
         }
 
