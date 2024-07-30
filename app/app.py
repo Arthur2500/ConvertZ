@@ -16,9 +16,25 @@ PRESETS = {
     "high": {"resolution": "3840x2160", "bitrate": "10M", "fps": "60", "format": "mp4"}
 }
 
+def get_video_duration(input_file):
+    try:
+        result = subprocess.run(
+            ['ffmpeg', '-i', input_file],
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE
+        )
+        for line in result.stderr.decode().split('\n'):
+            if 'Duration' in line:
+                duration = line.split('Duration: ')[1].split(',')[0]
+                return duration
+        return None
+    except Exception as e:
+        return None
+
 def estimate_file_size(input_file, settings):
-    duration_command = f"ffmpeg -i {input_file} 2>&1 | grep 'Duration' | awk '{{print $2}}' | tr -d ,"
-    duration = subprocess.check_output(duration_command, shell=True).decode('utf-8')
+    duration = get_video_duration(input_file)
+    if not duration:
+        return None
     
     hours, minutes, seconds = map(float, duration.split(':'))
     total_seconds = hours * 3600 + minutes * 60 + seconds
@@ -34,40 +50,50 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    file = request.files['file']
-    settings = json.loads(request.form['settings'])
-    input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(input_path)
-    output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
-    output_path = os.path.join(CONVERTED_FOLDER, output_filename)
-    
-    command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
     try:
+        file = request.files['file']
+        settings = json.loads(request.form['settings'])
+        input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(input_path)
+        output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
+        output_path = os.path.join(CONVERTED_FOLDER, output_filename)
+        
+        command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
         subprocess.run(command, shell=True, check=True)
+        
+        estimated_size = estimate_file_size(input_path, settings)
         os.remove(input_path)
+        
         response = jsonify({
-            "estimated_size": estimate_file_size(input_path, settings),
+            "estimated_size": estimated_size,
             "output_file": output_filename
         })
         response.headers['Content-Disposition'] = f'attachment; filename={output_filename}'
         return response
     except subprocess.CalledProcessError as e:
-        os.remove(input_path)
+        return jsonify({"error": f"Conversion error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+    finally:
+        if os.path.exists(input_path):
+            os.remove(input_path)
         if os.path.exists(output_path):
             os.remove(output_path)
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/estimate', methods=['POST'])
 def estimate():
-    file = request.files['file']
-    settings = json.loads(request.form['settings'])
-    input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(input_path)
-    estimated_size = estimate_file_size(input_path, settings)
-    os.remove(input_path)  # Remove the file after estimating size
-    return jsonify({
-        "estimated_size": estimated_size
-    })
+    try:
+        file = request.files['file']
+        settings = json.loads(request.form['settings'])
+        input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(input_path)
+        estimated_size = estimate_file_size(input_path, settings)
+        os.remove(input_path)
+        return jsonify({
+            "estimated_size": estimated_size if estimated_size else "Error calculating size"
+        })
+    except Exception as e:
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
