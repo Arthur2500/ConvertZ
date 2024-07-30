@@ -19,16 +19,12 @@ PRESETS = {
 def get_video_resolution(input_file):
     try:
         result = subprocess.run(
-            ['ffmpeg', '-i', input_file],
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE
+            ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', input_file],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
-        for line in result.stderr.decode().split('\n'):
-            if 'Stream' in line and 'Video' in line:
-                resolution = line.split(',')[2].split(' ')[3]
-                width, height = map(int, resolution.split('x'))
-                return width, height
-        return None, None
+        width, height = map(int, result.stdout.decode().strip().split(','))
+        return width, height
     except Exception as e:
         return None, None
 
