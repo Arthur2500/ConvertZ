@@ -45,9 +45,12 @@ h1 {
     border-radius: 5px;
     font-size: 16px;
     box-sizing: border-box;
-    text-overflow: ellipsis;
+}
+
+.input[type="file"] {
     white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .button {
