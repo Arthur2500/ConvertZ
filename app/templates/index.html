@@ -13,8 +13,8 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="files" class="label">Choose files:</label>
-                <input type="file" id="files" name="files" class="input" multiple onchange="updateFileNames()">
-                <div id="fileNames" class="file-names"></div>
+                <input type="file" id="files" name="files" class="input" multiple onchange="updateFileCount()">
+                <div id="fileCount" class="file-count"></div>
             </div>
             <div class="form-group">
                 <label for="preset" class="label">Preset:</label>
@@ -62,17 +62,11 @@
 
         let lastPreset = 'low';
 
-        function updateFileNames() {
+        function updateFileCount() {
             const fileInput = document.getElementById('files');
-            const fileNamesDiv = document.getElementById('fileNames');
+            const fileCountDiv = document.getElementById('fileCount');
             const files = fileInput.files;
-            fileNamesDiv.innerHTML = '';
-
-            for (let i = 0; i < files.length; i++) {
-                const fileName = document.createElement('div');
-                fileName.textContent = files[i].name;
-                fileNamesDiv.appendChild(fileName);
-            }
+            fileCountDiv.innerHTML = `${files.length} file(s) selected`;
 
             updateEstimate();
         }
