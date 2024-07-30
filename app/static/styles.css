@@ -53,10 +53,14 @@ h1 {
     text-overflow: ellipsis;
 }
 
-.file-name {
+.file-names {
     font-size: 14px;
     color: #333;
     margin-top: 5px;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 100px;
 }
 
 .button {
@@ -82,6 +86,9 @@ h1 {
 
 .result {
     margin-top: 20px;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .download-link {
