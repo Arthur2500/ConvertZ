@@ -13,8 +13,8 @@
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="files" class="label">Choose files:</label>
-                <input type="file" id="files" name="files" class="input" multiple onchange="updateFileLabel()">
-                <label id="fileLabel" for="files" class="input">No files selected</label>
+                <input type="file" id="files" name="files" class="input" multiple onchange="updateFileCount()">
+                <div id="fileCount" class="file-count"></div>
             </div>
             <div class="form-group">
                 <label for="preset" class="label">Preset:</label>
@@ -51,7 +51,6 @@
 
     <footer>
         <p><a href="privacy.html" target="_blank">Privacy Policy</a></p>
-        <p><a href="https://github.com/Arthur2500/ConvertZ" target="_blank">Source Code</a></p>
     </footer>
 
     <script>
@@ -63,15 +62,11 @@
 
         let lastPreset = 'low';
 
-        function updateFileLabel() {
+        function updateFileCount() {
             const fileInput = document.getElementById('files');
-            const fileLabel = document.getElementById('fileLabel');
+            const fileCountDiv = document.getElementById('fileCount');
             const files = fileInput.files;
-            if (files.length > 0) {
-                fileLabel.textContent = `${files.length} file(s) selected`;
-            } else {
-                fileLabel.textContent = 'No files selected';
-            }
+            fileCountDiv.innerHTML = `${files.length} file(s) selected`;
 
             updateEstimate();
         }
