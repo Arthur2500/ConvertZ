@@ -1,5 +1,7 @@
 import os
 import json
+import random
+import string
 from flask import Flask, request, jsonify, send_from_directory, render_template, after_this_request
 import subprocess
 
@@ -76,6 +78,9 @@ def estimate_file_size(input_file, settings):
     except (ValueError, KeyError):
         return None
 
+def generate_hex_hash(length=6):
+    return ''.join(random.choices(string.hexdigits.lower(), k=length))
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -102,11 +107,14 @@ def upload_file():
             scale = settings['scale']
             new_width = int(original_width * scale)
             new_height = int(original_height * scale)
-            
-            output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
+
+            # Generate unique filename with hex hash
+            hex_hash = generate_hex_hash()
+            base_name = file.filename.rsplit('.', 1)[0]
+            output_filename = f"converted_{base_name}_{hex_hash}.{settings['format']}"
             output_path = os.path.join(CONVERTED_FOLDER, output_filename)
             
-            command = f"ffmpeg -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
+            command = f"ffmpeg -y -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
             subprocess.run(command, shell=True, check=True)
             
             input_paths.append(input_path)
