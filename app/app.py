@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import subprocess
 
@@ -34,8 +35,7 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
-    preset = request.form['preset']
-    settings = PRESETS[preset]
+    settings = json.loads(request.form['settings'])
     input_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(input_path)
     output_filename = f"converted_{file.filename}"
@@ -47,6 +47,18 @@ def upload_file():
     return jsonify({
         "estimated_size": estimate_file_size(input_path, settings),
         "output_file": output_filename
+    })
+
+@app.route('/estimate', methods=['POST'])
+def estimate():
+    file = request.files['file']
+    settings = json.loads(request.form['settings'])
+    input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(input_path)
+    estimated_size = estimate_file_size(input_path, settings)
+    os.remove(input_path)  # Remove the file after estimating size
+    return jsonify({
+        "estimated_size": estimated_size
     })
 
 @app.route('/download/<filename>', methods=['GET'])
