@@ -17,6 +17,9 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
 }
 
 h1 {
@@ -26,6 +29,7 @@ h1 {
 
 .form-group {
     margin-bottom: 15px;
+    text-align: left;
 }
 
 .label {
@@ -35,12 +39,15 @@ h1 {
 }
 
 .input {
-    width: calc(100% - 20px);
+    width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
     box-sizing: border-box;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .button {
@@ -81,6 +88,7 @@ h1 {
 footer {
     text-align: center;
     margin: 10px 0;
+    width: 100%;
 }
 
 footer a {
