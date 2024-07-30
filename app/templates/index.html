@@ -17,16 +17,16 @@
             <div class="form-group">
                 <label for="preset">Preset:</label>
                 <select id="preset" name="preset" class="input" onchange="updateSettings()">
-                    <option value="low">Low (720p30, mp4)</option>
-                    <option value="medium">Medium (1080p60, mp4)</option>
-                    <option value="high">High (4k60, mp4)</option>
+                    <option value="low">Low (0.5x, mp4)</option>
+                    <option value="medium">Medium (0.75x, mp4)</option>
+                    <option value="high">High (1.0x, mp4)</option>
                     <option value="custom">Custom</option>
                 </select>
             </div>
             <div id="customSettings" style="display: none;">
                 <div class="form-group">
-                    <label for="resolution">Resolution:</label>
-                    <input type="text" id="resolution" name="resolution" placeholder="e.g., 1280x720" class="input" oninput="updateEstimate()">
+                    <label for="scale">Scale:</label>
+                    <input type="text" id="scale" name="scale" placeholder="e.g., 0.65" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
                     <label for="bitrate">Bitrate:</label>
@@ -61,7 +61,7 @@
             if (preset === 'custom') {
                 document.getElementById('customSettings').style.display = 'block';
                 const lastSettings = presets[lastPreset];
-                document.getElementById('resolution').value = lastSettings.resolution;
+                document.getElementById('scale').value = lastSettings.scale;
                 document.getElementById('bitrate').value = lastSettings.bitrate;
                 document.getElementById('fps').value = lastSettings.fps;
                 document.getElementById('format').value = lastSettings.format;
@@ -79,7 +79,7 @@
                 const preset = document.getElementById('preset').value;
                 if (preset === 'custom') {
                     settings = {
-                        resolution: document.getElementById('resolution').value,
+                        scale: parseFloat(document.getElementById('scale').value),
                         bitrate: document.getElementById('bitrate').value,
                         fps: document.getElementById('fps').value,
                         format: document.getElementById('format').value
@@ -111,7 +111,7 @@
             let settings = {};
             if (preset === 'custom') {
                 settings = {
-                    resolution: document.getElementById('resolution').value,
+                    scale: parseFloat(document.getElementById('scale').value),
                     bitrate: document.getElementById('bitrate').value,
                     fps: document.getElementById('fps').value,
                     format: document.getElementById('format').value
