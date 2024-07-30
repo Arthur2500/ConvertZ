@@ -146,17 +146,4 @@ def estimate():
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
-@app.route('/download/<filename>', methods=['GET'])
-def download_file(filename):
-    @after_this_request
-    def remove_file(response):
-        try:
-            os.remove(os.path.join(CONVERTED_FOLDER, filename))
-        except Exception as e:
-            app.logger.error(f'Error removing file: {str(e)}')
-        return response
-
-    return send_from_directory(CONVERTED_FOLDER, filename, as_attachment=True)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+@app.route('/download/<filename>',
