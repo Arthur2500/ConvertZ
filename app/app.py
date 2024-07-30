@@ -86,62 +86,74 @@ def privacy():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    input_path = None
-    output_path = None
+    input_paths = []
+    output_paths = []
     try:
-        file = request.files['file']
+        files = request.files.getlist('files')
         settings = json.loads(request.form['settings'])
-        input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(input_path)
-        original_width, original_height = get_video_resolution(input_path)
-        
-        if original_width is None or original_height is None:
-            return jsonify({"error": "Error retrieving video resolution"}), 500
+        for file in files:
+            input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+            file.save(input_path)
+            original_width, original_height = get_video_resolution(input_path)
+            if original_width is None or original_height is None:
+                return jsonify({"error": "Error retrieving video resolution"}), 500
 
-        # Berechne neue Auflösung basierend auf dem Preset
-        scale = settings['scale']
-        new_width = int(original_width * scale)
-        new_height = int(original_height * scale)
-        
-        output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
-        output_path = os.path.join(CONVERTED_FOLDER, output_filename)
-        
-        command = f"ffmpeg -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
-        subprocess.run(command, shell=True, check=True)
-        
-        estimated_size = estimate_file_size(input_path, settings)
-        os.remove(input_path)
-        
+            # Berechne neue Auflösung basierend auf dem Preset
+            scale = settings['scale']
+            new_width = int(original_width * scale)
+            new_height = int(original_height * scale)
+            
+            output_filename = f"converted_{file.filename.split('.')[0]}.{settings['format']}"
+            output_path = os.path.join(CONVERTED_FOLDER, output_filename)
+            
+            command = f"ffmpeg -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
+            subprocess.run(command, shell=True, check=True)
+            
+            input_paths.append(input_path)
+            output_paths.append(output_path)
+
+        estimated_size = sum([estimate_file_size(path, settings) for path in input_paths])
+        for path in input_paths:
+            os.remove(path)
+
         response = jsonify({
             "estimated_size": estimated_size,
-            "output_file": output_filename
+            "output_files": [os.path.basename(path) for path in output_paths]
         })
-        response.headers['Content-Disposition'] = f'attachment; filename={output_filename}'
+        response.headers['Content-Disposition'] = 'attachment'
         return response
     except subprocess.CalledProcessError as e:
-        if input_path and os.path.exists(input_path):
-            os.remove(input_path)
-        if output_path and os.path.exists(output_path):
-            os.remove(output_path)
+        for path in input_paths:
+            if os.path.exists(path):
+                os.remove(path)
+        for path in output_paths:
+            if os.path.exists(path):
+                os.remove(path)
         return jsonify({"error": f"Conversion error: {str(e)}"}), 500
     except Exception as e:
-        if input_path and os.path.exists(input_path):
-            os.remove(input_path)
-        if output_path and os.path.exists(output_path):
-            os.remove(output_path)
+        for path in input_paths:
+            if os.path.exists(path):
+                os.remove(path)
+        for path in output_paths:
+            if os.path.exists(path):
+                os.remove(path)
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 @app.route('/estimate', methods=['POST'])
 def estimate():
     try:
-        file = request.files['file']
+        files = request.files.getlist('files')
         settings = json.loads(request.form['settings'])
-        input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(input_path)
-        estimated_size = estimate_file_size(input_path, settings)
-        os.remove(input_path)
+        total_estimated_size = 0
+        for file in files:
+            input_path = os.path.join(UPLOAD_FOLDER, file.filename)
+            file.save(input_path)
+            estimated_size = estimate_file_size(input_path, settings)
+            if estimated_size:
+                total_estimated_size += estimated_size
+            os.remove(input_path)
         return jsonify({
-            "estimated_size": estimated_size if estimated_size else "Error calculating size"
+            "estimated_size": total_estimated_size if total_estimated_size else "Error calculating size"
         })
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
