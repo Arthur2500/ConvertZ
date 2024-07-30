@@ -12,11 +12,11 @@
         <h1>ConvertZ</h1>
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="file">Choose file:</label>
+                <label for="file" class="label">Choose file:</label>
                 <input type="file" id="file" name="file" class="input" onchange="updateEstimate()">
             </div>
             <div class="form-group">
-                <label for="preset">Preset:</label>
+                <label for="preset" class="label">Preset:</label>
                 <select id="preset" name="preset" class="input" onchange="updateSettings()">
                     <option value="low">Low (0.5x, mp4)</option>
                     <option value="medium">Medium (0.75x, mp4)</option>
@@ -26,19 +26,19 @@
             </div>
             <div id="customSettings" style="display: none;">
                 <div class="form-group">
-                    <label for="scale">Scale:</label>
+                    <label for="scale" class="label">Scale:</label>
                     <input type="text" id="scale" name="scale" placeholder="e.g., 0.65" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
-                    <label for="bitrate">Bitrate:</label>
+                    <label for="bitrate" class="label">Bitrate:</label>
                     <input type="text" id="bitrate" name="bitrate" placeholder="e.g., 1M" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
-                    <label for="fps">FPS:</label>
+                    <label for="fps" class="label">FPS:</label>
                     <input type="text" id="fps" name="fps" placeholder="e.g., 30" class="input" oninput="updateEstimate()">
                 </div>
                 <div class="form-group">
-                    <label for="format">Format:</label>
+                    <label for="format" class="label">Format:</label>
                     <input type="text" id="format" name="format" placeholder="e.g., mp4" class="input" oninput="updateEstimate()">
                 </div>
             </div>
