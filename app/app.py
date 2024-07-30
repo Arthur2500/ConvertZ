@@ -118,7 +118,8 @@ def upload_file():
             output_filename = f"converted_{base_name}_{hex_hash}.{settings['format']}"
             output_path = os.path.join(CONVERTED_FOLDER, output_filename)
             
-            command = f"ffmpeg -y -i {input_path} -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
+            # Setze Dateipfade in Anführungszeichen
+            command = f"ffmpeg -y -i \"{input_path}\" -vf scale={new_width}:{new_height} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} \"{output_path}\""
             app.logger.info(f'Running command: {command}')
             subprocess.run(command, shell=True, check=True)
             
