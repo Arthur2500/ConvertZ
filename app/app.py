@@ -1,12 +1,12 @@
 import os
 import json
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template, after_this_request
 import subprocess
 
 app = Flask(__name__, static_url_path='/static')
 
-UPLOAD_FOLDER = '../uploads'
-CONVERTED_FOLDER = '../converted'
+UPLOAD_FOLDER = 'uploads'
+CONVERTED_FOLDER = 'converted'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
@@ -50,6 +50,8 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    input_path = None
+    output_path = None
     try:
         file = request.files['file']
         settings = json.loads(request.form['settings'])
@@ -61,7 +63,7 @@ def upload_file():
         command = f"ffmpeg -i {input_path} -s {settings['resolution']} -b:v {settings['bitrate']} -r {settings['fps']} -f {settings['format']} {output_path}"
         subprocess.run(command, shell=True, check=True)
         
-        estimated_size = estimate_file_size(input_path, settings)
+        estimated_size = estimate_file_size(output_path, settings)
         os.remove(input_path)
         
         response = jsonify({
@@ -71,14 +73,17 @@ def upload_file():
         response.headers['Content-Disposition'] = f'attachment; filename={output_filename}'
         return response
     except subprocess.CalledProcessError as e:
+        if input_path and os.path.exists(input_path):
+            os.remove(input_path)
+        if output_path and os.path.exists(output_path):
+            os.remove(output_path)
         return jsonify({"error": f"Conversion error: {str(e)}"}), 500
     except Exception as e:
-        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
-    finally:
-        if os.path.exists(input_path):
+        if input_path and os.path.exists(input_path):
             os.remove(input_path)
-        if os.path.exists(output_path):
+        if output_path and os.path.exists(output_path):
             os.remove(output_path)
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 @app.route('/estimate', methods=['POST'])
 def estimate():
@@ -97,6 +102,14 @@ def estimate():
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.remove(os.path.join(CONVERTED_FOLDER, filename))
+        except Exception as e:
+            app.logger.error(f'Error removing file: {str(e)}')
+        return response
+
     return send_from_directory(CONVERTED_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
