@@ -1,3 +1,4 @@
+[![Docker Image CI](https://github.com/Arthur2500/ConvertZ/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Arthur2500/ConvertZ/actions/workflows/docker-image.yml)
 # ConvertZ
 A lightweight video conversion and compression webapp using ffmpeg.
 
