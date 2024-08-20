@@ -5,6 +5,8 @@ services:
     container_name: convertz
     ports:
       - "3000:3000"
+    environment:
+      NODE_ENV: production
     volumes:
       - ./uploads:/app/uploads
       - ./converted:/app/converted
