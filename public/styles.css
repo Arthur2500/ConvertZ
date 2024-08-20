@@ -1,0 +1,122 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: url('/WPGEN.png') no-repeat center center fixed; /* Background image */
+  background-size: cover; /* Cover the entire background */
+  margin: 0;
+  padding: 20px;
+  color: #333; /* Darker text for better contrast */
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.75); /* Slightly transparent white background */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Softer, more pronounced shadow */
+  border-radius: 12px; /* Rounded corners */
+}
+
+h1 {
+  text-align: center;
+  font-size: 2em;
+  margin-bottom: 20px;
+  color: #333; /* Neutral dark color */
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #333; /* Neutral dark color */
+}
+
+input, select {
+  margin-bottom: 20px;
+  padding: 12px;
+  font-size: 1em;
+  border: 1px solid #ddd; /* Subtle border */
+  border-radius: 8px; /* Rounded inputs */
+  box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.9); /* White with slight transparency */
+  width: 100%; /* Ensure full width */
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #aaa; /* Neutral gray border on focus */
+  box-shadow: 0 0 5px rgba(169, 169, 169, 0.5); /* Subtle gray glow effect on focus */
+}
+
+button {
+  padding: 12px;
+  font-size: 1em;
+  background-color: #007bff; /* Blue background */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, opacity 0.3s ease; /* Smooth transition effect */
+}
+
+button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Deactivated button style */
+button:disabled,
+button.deactivated {
+  background-color: #cccccc; /* Light gray background */
+  color: #666666; /* Darker gray text */
+  cursor: not-allowed; /* Not-allowed cursor */
+  opacity: 0.6; /* Reduced opacity for a deactivated look */
+}
+
+/* Center the privacy policy link */
+p {
+  text-align: center;
+  margin-top: 20px;
+}
+
+a {
+  color: #333; /* Neutral dark color for links, same as text color */
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 1.75em;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  button {
+    padding: 8px;
+    font-size: 0.85em;
+  }
+}

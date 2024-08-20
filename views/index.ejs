@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConvertZ</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <h1>ConvertZ</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="videos">Select videos:</label>
+            <input type="file" name="videos" id="videos" accept="video/mp4,video/x-m4v,video/*" multiple required>
+
+            <label for="preset">Preset:</label>
+            <select name="preset" id="preset">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high" selected>High</option>
+                <option value="custom">Custom</option>
+            </select>
+
+            <div id="custom-options" style="display: none;">
+                <label for="resolution">Resolution (% of original):</label>
+                <input type="number" name="resolution" id="resolution" min="50" max="100" step="10" value="100">
+
+                <label for="fps">FPS:</label>
+                <input type="number" name="fps" id="fps" min="15" max="60" step="1" value="60">
+
+                <label for="bitrate">Bitrate (kbps):</label>
+                <input type="number" name="bitrate" id="bitrate" min="1000" max="10000" step="100" value="4000">
+            </div>
+
+            <label for="format">Output format:</label>
+            <select name="format" id="format">
+                <option value="mp4" selected>MP4</option>
+                <option value="avi">AVI</option>
+                <option value="mkv">MKV</option>
+                <option value="mov">MOV</option>
+            </select>
+
+            <button type="submit">Convert and Download</button>
+        </form>
+        <p><a href="/privacy">Privacy Policy</a></p>
+        <p><a target="_blank" rel="nofollow" href="https://github.com/Arthur2500/ConvertZ">Source Code</a></p>
+    </div>
+    <script src="/script.js"></script>
+</body>
+</html>
