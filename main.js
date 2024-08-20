@@ -9,7 +9,11 @@ const helmet = require('helmet');
 const app = express();
 const port = 3000;
 
-app.use(helmet()); // Adds security headers to the app using Helmet
+app.use(helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+}));
 
 // Set up multer for file uploads with file type validation and size limit
 const upload = multer({ 
