@@ -12,7 +12,7 @@ const port = 3000;
 app.use(helmet()); // Adds security headers to the app using Helmet
 
 // Set up multer for file uploads with file type validation and size limit
-const upload = multer({ 
+const upload = multer({
     dest: 'uploads/',
     limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit
     fileFilter: (req, file, cb) => {
@@ -60,8 +60,14 @@ const sanitizeInput = (input, type) => {
     throw new Error('Invalid input type.');
 };
 
-// Ensure that file paths are relative to the working directory
-const safePath = (filePath) => path.normalize(filePath).startsWith(__dirname);
+// Ensure the file path is within the 'uploads' or 'converted' directories.
+const safePath = (filePath) => {
+    const absolutePath = path.resolve(filePath);
+    const uploadsPath = path.resolve(__dirname, 'uploads');
+    const convertedPath = path.resolve(__dirname, 'converted');
+
+    return absolutePath.startsWith(uploadsPath) || absolutePath.startsWith(convertedPath);
+};
 
 // Schedule file deletion after 1 hour
 const scheduleFileDeletion = (filePath) => {
