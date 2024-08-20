@@ -12,7 +12,7 @@ const port = 3000;
 app.use(helmet({
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: false,
-    crossOriginResourcePolicy: false,
+    crossOriginResourcePolicy: false
 }));
 
 // Set up multer for file uploads with file type validation and size limit
