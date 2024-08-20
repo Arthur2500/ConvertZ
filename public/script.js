@@ -64,6 +64,10 @@ function validateForm() {
     return true;
 }
 
+document.getElementById("backButton").addEventListener("click", function() {
+    window.location.href = '/';
+});
+
 // Handle the form submission process and conversion
 const form = document.querySelector('form');
 const convertButton = form.querySelector('button[type="submit"]');
