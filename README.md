@@ -10,7 +10,8 @@ docker run --name convertz -d -p 3000:3000 ghcr.io/arthur2500/convertz:latest
 ```
 or
 ```
-mkdir Convertz &&
+mkdir ConvertZ &&
+cd ConvertZ &&
 wget https://raw.githubusercontent.com/Arthur2500/ConvertZ/main/docker-compose.yml &&
 docker-compose up -d
 ```
