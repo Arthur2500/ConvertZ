@@ -4,12 +4,12 @@ body {
   background-size: cover; /* Cover the entire background */
   margin: 0;
   padding: 20px;
-  color: #333; /* Darker text for better contrast */
+  color: #000; /* Darker text for better contrast */
 }
 
 .container {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 50px auto 0 auto; /* Increased top margin for more space */
   padding: 30px;
   background-color: rgba(255, 255, 255, 0.75); /* Slightly transparent white background */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Softer, more pronounced shadow */
@@ -20,7 +20,7 @@ h1 {
   text-align: center;
   font-size: 2em;
   margin-bottom: 20px;
-  color: #333; /* Neutral dark color */
+  color: #000; /* Neutral dark color */
 }
 
 form {
@@ -31,7 +31,7 @@ form {
 label {
   margin-bottom: 10px;
   font-weight: bold;
-  color: #333; /* Neutral dark color */
+  color: #000; /* Neutral dark color */
 }
 
 input, select {
@@ -78,11 +78,12 @@ button.deactivated {
 /* Center the privacy policy link */
 p {
   text-align: center;
+  font-w
   margin-top: 20px;
 }
 
 a {
-  color: #333; /* Neutral dark color for links, same as text color */
+  color: #000; /* Neutral dark color for links, same as text color */
   text-decoration: none;
 }
 
@@ -94,6 +95,7 @@ a:hover {
 @media (max-width: 768px) {
   .container {
     padding: 20px;
+    margin-top: 40px; /* Adjusted margin for smaller screens */
   }
 
   h1 {
@@ -109,6 +111,7 @@ a:hover {
 @media (max-width: 480px) {
   .container {
     padding: 15px;
+    margin-top: 30px; /* Adjusted margin for smaller screens */
   }
 
   h1 {

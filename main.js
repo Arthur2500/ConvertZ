@@ -4,12 +4,26 @@ const path = require('path');
 const { exec } = require('child_process');
 const fs = require('fs');
 const archiver = require('archiver');
+const helmet = require('helmet');
 
 const app = express();
 const port = 3000;
 
-// Set up multer for file uploads, saving files to 'uploads/' directory
-const upload = multer({ dest: 'uploads/' });
+app.use(helmet()); // Adds security headers to the app using Helmet
+
+// Set up multer for file uploads with file type validation and size limit
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit
+    fileFilter: (req, file, cb) => {
+        const allowedMimeTypes = ['video/mp4', 'video/avi', 'video/mkv', 'video/webm', 'video/quicktime', 'video/mpeg'];
+        if (allowedMimeTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only video files are allowed.'));
+        }
+    }
+});
 
 // Set up EJS as the view engine
 app.set('view engine', 'ejs');
@@ -17,12 +31,45 @@ app.set('view engine', 'ejs');
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 
-// Route for rendering the home page
+// Render the home page
 app.get('/', (req, res) => {
     res.render('index');
 });
 
-// Helper function to schedule file deletion after 1 hour
+// Function to sanitize and validate input values
+const sanitizeInput = (input, type) => {
+    if (type === 'resolution' || type === 'fps') {
+        const num = parseInt(input, 10);
+        if (isNaN(num) || num <= 0) {
+            throw new Error('Invalid resolution or fps value.');
+        }
+        return num;
+    } else if (type === 'bitrate') {
+        const bitratePattern = /^[0-9]+k$/;  // Expecting format like '5000k'
+        if (!bitratePattern.test(input)) {
+            throw new Error('Invalid bitrate format.');
+        }
+        return input;
+    } else if (type === 'format') {
+        const allowedFormats = ['mp4', 'avi', 'mkv', 'webm'];
+        if (!allowedFormats.includes(input)) {
+            throw new Error('Invalid output format.');
+        }
+        return input;
+    }
+    throw new Error('Invalid input type.');
+};
+
+// Ensure the file path is within the 'uploads' or 'converted' directories.
+const safePath = (filePath) => {
+    const absolutePath = path.resolve(filePath);
+    const uploadsPath = path.resolve(__dirname, 'uploads');
+    const convertedPath = path.resolve(__dirname, 'converted');
+
+    return absolutePath.startsWith(uploadsPath) || absolutePath.startsWith(convertedPath);
+};
+
+// Schedule file deletion after 1 hour
 const scheduleFileDeletion = (filePath) => {
     setTimeout(() => {
         if (fs.existsSync(filePath)) {
@@ -37,33 +84,32 @@ const scheduleFileDeletion = (filePath) => {
     }, 3600000); // 1 hour in milliseconds
 };
 
-// Route for handling video uploads and conversion
+// Handle video uploads and conversion
 app.post('/upload', upload.array('videos'), (req, res) => {
     const files = req.files;
-    const outputFormat = req.body.format;
-    const resolution = req.body.resolution;
-    const fps = req.body.fps;
-    const bitrate = req.body.bitrate + "k";
+    const outputFormat = sanitizeInput(req.body.format, 'format');
+    const resolution = sanitizeInput(req.body.resolution, 'resolution');
+    const fps = sanitizeInput(req.body.fps, 'fps');
+    const bitrate = sanitizeInput(req.body.bitrate + "k", 'bitrate');
 
-    console.log(`Received ${files.length} files for conversion.`);
-    console.log(`Requested format: ${outputFormat}, resolution: ${resolution}%, fps: ${fps}, bitrate: ${bitrate}`);
+    const scaleFactor = parseFloat(resolution) / 100; // Calculate the scale factor from the resolution percentage
+    const scaleFilter = `iw*${scaleFactor}:ih*${scaleFactor}`; // Create the scale filter for ffmpeg
 
-    const scaleFactor = parseFloat(resolution) / 100; // Calculate the scale factor from resolution percentage
-    const scaleFilter = `iw*${scaleFactor}:ih*${scaleFactor}`; // Build the scale filter for ffmpeg
+    const convertedFiles = [];
 
-    const convertedFiles = []; // Array to keep track of converted files
-
-    // Map through each uploaded file and create a promise for conversion
     const conversionPromises = files.map((file) => {
         return new Promise((resolve, reject) => {
-            const outputFilePath = path.join('converted', `${path.parse(file.filename).name}.${outputFormat}`);
+            const outputFilePath = path.join('converted', path.basename(`${path.parse(file.filename).name}.${outputFormat}`));
             convertedFiles.push(outputFilePath);
 
-            // Construct the ffmpeg command for video conversion
             const ffmpegCommand = `ffmpeg -i ${file.path} -vf "scale=${scaleFilter}" -r ${fps} -b:v ${bitrate} -preset fast ${outputFilePath}`;
             console.log(`Executing command: ${ffmpegCommand}`);
 
-            // Execute the ffmpeg command
+            if (!safePath(file.path) || !safePath(outputFilePath)) {
+                reject(new Error('Unsafe file path detected.'));
+                return;
+            }
+
             exec(ffmpegCommand, (error) => {
                 if (error) {
                     console.error(`Error during conversion: ${error.message}`);
@@ -73,7 +119,6 @@ app.post('/upload', upload.array('videos'), (req, res) => {
 
                 console.log(`Conversion completed for: ${outputFilePath}`);
 
-                // Delete the uploaded file after conversion
                 if (fs.existsSync(outputFilePath)) {
                     fs.unlink(file.path, (err) => {
                         if (err) {
@@ -82,7 +127,7 @@ app.post('/upload', upload.array('videos'), (req, res) => {
                             console.log(`Uploaded file deleted: ${file.path}`);
                         }
                     });
-                    scheduleFileDeletion(outputFilePath); // Schedule deletion of converted file
+                    scheduleFileDeletion(outputFilePath);
                     resolve();
                 } else {
                     const errorMsg = `Output file not created: ${outputFilePath}`;
@@ -93,16 +138,13 @@ app.post('/upload', upload.array('videos'), (req, res) => {
         });
     });
 
-    // After all conversions are done
     Promise.all(conversionPromises)
         .then(() => {
-            // If only one file is converted, send it directly
             if (convertedFiles.length === 1) {
                 const file = convertedFiles[0];
                 console.log(`Sending single converted file: ${file}`);
                 res.setHeader('filetype', path.extname(file));
                 res.download(file, () => {
-                    // Delete the converted file after download
                     fs.unlink(file, (err) => {
                         if (err) {
                             console.error(`Error deleting converted file: ${err.message}`);
@@ -112,18 +154,15 @@ app.post('/upload', upload.array('videos'), (req, res) => {
                     });
                 });
             } else {
-                // If multiple files are converted, zip them together
                 const zipFilePath = path.join('converted', 'converted_videos.zip');
                 console.log(`Creating zip archive: ${zipFilePath}`);
                 const output = fs.createWriteStream(zipFilePath);
                 const archive = archiver('zip', { zlib: { level: 9 } });
 
-                // Event listeners for the archive process
                 output.on('close', function () {
                     console.log(`Zip archive created, size: ${archive.pointer()} bytes`);
                     res.setHeader('filetype', '.zip');
                     res.download(zipFilePath, () => {
-                        // Delete all converted files and the zip archive after download
                         convertedFiles.forEach((file) => {
                             fs.unlink(file, (err) => {
                                 if (err) {
@@ -150,7 +189,6 @@ app.post('/upload', upload.array('videos'), (req, res) => {
 
                 archive.pipe(output);
 
-                // Add each converted file to the zip archive
                 convertedFiles.forEach((file) => {
                     if (fs.existsSync(file)) {
                         console.log(`Adding file to zip: ${file}`);
@@ -160,8 +198,8 @@ app.post('/upload', upload.array('videos'), (req, res) => {
                     }
                 });
 
-                archive.finalize(); // Finalize the archive (finish the zip process)
-                scheduleFileDeletion(zipFilePath); // Schedule deletion of the zip file
+                archive.finalize();
+                scheduleFileDeletion(zipFilePath);
             }
         })
         .catch((error) => {
@@ -170,7 +208,7 @@ app.post('/upload', upload.array('videos'), (req, res) => {
         });
 });
 
-// Route for rendering the privacy policy page
+// Render the privacy policy page
 app.get('/privacy', (req, res) => {
     res.render('privacy');
 });

@@ -1,3 +1,4 @@
+[![Docker Image CI](https://github.com/Arthur2500/ConvertZ/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Arthur2500/ConvertZ/actions/workflows/docker-image.yml)
 # ConvertZ
 A lightweight video conversion and compression webapp using ffmpeg.
 
@@ -10,11 +11,11 @@ docker run --name convertz -d -p 3000:3000 ghcr.io/arthur2500/convertz:latest
 ```
 or
 ```
-mkdir Convertz &&
+mkdir ConvertZ &&
+cd ConvertZ &&
 wget https://raw.githubusercontent.com/Arthur2500/ConvertZ/main/docker-compose.yml &&
 docker-compose up -d
 ```
 
 ## Screenshots
-![Screenshot 2024-08-20 194913](https://github.com/user-attachments/assets/967efc4c-0a8f-4676-a56c-586b039b9e60)
-![Screenshot 2024-08-20 194922](https://github.com/user-attachments/assets/6e839ada-f274-4e68-87c1-2f2003681b60)
+![Screenshot 2024-08-20 215648](https://github.com/user-attachments/assets/a2d7979e-2f71-4f3f-9063-57128690e62a)
