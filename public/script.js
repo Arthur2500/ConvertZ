@@ -33,6 +33,7 @@ document.getElementById('preset').addEventListener('change', function() {
         const selectedPreset = presets[this.value];
         console.log('Selected preset values:', selectedPreset);
 
+        // Apply preset values to the form
         document.getElementById('resolution').value = selectedPreset.resolution;
         document.getElementById('fps').value = selectedPreset.fps;
         document.getElementById('bitrate').value = selectedPreset.bitrate;
@@ -42,6 +43,27 @@ document.getElementById('preset').addEventListener('change', function() {
 // Initialize the form with the medium preset as the default selection
 document.getElementById('preset').dispatchEvent(new Event('change'));
 
+// Client-side validation function
+function validateForm() {
+    const resolution = document.getElementById('resolution').value;
+    const fps = document.getElementById('fps').value;
+    const bitrate = document.getElementById('bitrate').value;
+
+    if (isNaN(resolution) || resolution <= 0 || resolution > 100) {
+        alert('Resolution must be a number between 1 and 100.');
+        return false;
+    }
+    if (isNaN(fps) || fps <= 0 || fps > 60) {
+        alert('FPS must be a number between 1 and 60.');
+        return false;
+    }
+    if (isNaN(bitrate) || bitrate <= 0) {
+        alert('Bitrate must be a positive number.');
+        return false;
+    }
+    return true;
+}
+
 // Handle the form submission process and conversion
 const form = document.querySelector('form');
 const convertButton = form.querySelector('button[type="submit"]');
@@ -50,6 +72,11 @@ let downloadUrl = '';
 form.addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission behavior
     console.log('Form submission intercepted. Starting conversion process...');
+
+    // Validate form inputs before submission
+    if (!validateForm()) {
+        return;
+    }
 
     // Disable the button and change text to indicate conversion in progress
     convertButton.disabled = true;
