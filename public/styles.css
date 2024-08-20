@@ -4,7 +4,7 @@ body {
   background-size: cover; /* Cover the entire background */
   margin: 0;
   padding: 20px;
-  color: #333; /* Darker text for better contrast */
+  color: #000; /* Darker text for better contrast */
 }
 
 .container {
@@ -20,7 +20,7 @@ h1 {
   text-align: center;
   font-size: 2em;
   margin-bottom: 20px;
-  color: #333; /* Neutral dark color */
+  color: #000; /* Neutral dark color */
 }
 
 form {
@@ -31,7 +31,7 @@ form {
 label {
   margin-bottom: 10px;
   font-weight: bold;
-  color: #333; /* Neutral dark color */
+  color: #000; /* Neutral dark color */
 }
 
 input, select {
@@ -82,7 +82,7 @@ p {
 }
 
 a {
-  color: #333; /* Neutral dark color for links, same as text color */
+  color: #000; /* Neutral dark color for links, same as text color */
   text-decoration: none;
 }
 
