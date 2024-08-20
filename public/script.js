@@ -64,10 +64,6 @@ function validateForm() {
     return true;
 }
 
-document.getElementById("backButton").addEventListener("click", function() {
-    window.location.href = '/';
-});
-
 // Handle the form submission process and conversion
 const form = document.querySelector('form');
 const convertButton = form.querySelector('button[type="submit"]');
@@ -149,4 +145,16 @@ form.addEventListener('submit', function(event) {
         convertButton.disabled = false;
         alert('An error occurred during conversion.');
     });
+});
+
+// Ensure the script only runs when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if the backButton exists on the page before adding an event listener
+    const backButton = document.getElementById('backButton');
+
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            window.location.href = '/';  // Redirect to the main page
+        });
+    }
 });
