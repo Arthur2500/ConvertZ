@@ -1,6 +1,6 @@
 version: '3'
 services:
-  web:
+  convertz:
     image: ghcr.io/arthur2500/convertz:latest
     container_name: convertz
     ports:
