@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:16
+FROM node:22
 
 # Set the working directory
 WORKDIR /app
@@ -18,10 +18,6 @@ RUN npm install --omit=dev
 
 # Copy the rest of the application code
 COPY . .
-
-# Ensure the node process runs as a non-root user for better security
-RUN useradd -m appuser && chown -R appuser /app
-USER appuser
 
 # Expose the port the app runs on
 EXPOSE 3000
