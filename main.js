@@ -19,7 +19,15 @@ const upload = multer({
     dest: 'uploads/',
     limits: { fileSize: 500 * 1024 * 1024 }, // 500MB limit
     fileFilter: (req, file, cb) => {
-        const allowedMimeTypes = ['video/mp4', 'video/avi', 'video/mkv', 'video/webm', 'video/quicktime', 'video/mpeg'];
+        const allowedMimeTypes = [
+            'video/mp4',
+            'video/avi',
+            'video/mkv',
+            'video/webm',
+            'video/quicktime',
+            'video/mpeg',
+            'application/octet-stream'
+        ];
         if (allowedMimeTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
