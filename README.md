@@ -17,5 +17,33 @@ wget https://raw.githubusercontent.com/Arthur2500/ConvertZ/main/docker-compose.y
 docker-compose up -d
 ```
 
+## Build and run Docker image locally
+```
+git clone https://github.com/Arthur2500/ConvertZ.git &&
+docker-compose -f docker-compose.local.yml up -d --build
+```
+
+## Run without Docker
+Requirements:
+```
+Node.js >= 16
+ffmpeg
+```
+
+Clone Repository
+```
+git clone https://github.com/Arthur2500/ConvertZ.git
+```
+
+Install dependencies
+```
+npm install
+```
+
+Run main.js
+```
+node main.js
+```
+
 ## Screenshots
 ![Screenshot 2024-08-20 215648](https://github.com/user-attachments/assets/a2d7979e-2f71-4f3f-9063-57128690e62a)

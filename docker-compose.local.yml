@@ -1,0 +1,11 @@
+version: '3'
+services:
+  web:
+    build: .
+    container_name: convertz
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./converted:/app/converted
+    restart: unless-stopped
