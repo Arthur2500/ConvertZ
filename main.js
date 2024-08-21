@@ -211,6 +211,78 @@ app.post('/upload', upload.array('videos'), (req, res) => {
         });
 });
 
+// Handle video uploads and conversion through API
+app.post('/api/upload', upload.single('video'), (req, res) => {
+    // Optional API key check
+    const apiKey = process.env.API_KEY;
+    if (apiKey && req.headers['authorization'] !== apiKey) {
+        return res.status(403).json({ error: 'Forbidden: Invalid API key' });
+    }
+
+    const file = req.file;
+    if (!file) {
+        return res.status(400).json({ error: 'No file uploaded.' });
+    }
+
+    try {
+        const outputFormat = sanitizeInput(req.body.format, 'format');
+        const resolution = sanitizeInput(req.body.resolution, 'resolution');
+        const fps = sanitizeInput(req.body.fps, 'fps');
+        const bitrate = sanitizeInput(req.body.bitrate + "k", 'bitrate');
+
+        const scaleFactor = parseFloat(resolution) / 100; // Calculate the scale factor from the resolution percentage
+        const scaleFilter = `iw*${scaleFactor}:ih*${scaleFactor}`; // Create the scale filter for ffmpeg
+
+        const outputFilePath = path.join('converted', path.basename(`${path.parse(file.filename).name}.${outputFormat}`));
+
+        if (!safePath(file.path) || !safePath(outputFilePath)) {
+            throw new Error('Unsafe file path detected.');
+        }
+
+        const ffmpegCommand = `ffmpeg -i ${file.path} -vf "scale=${scaleFilter}" -r ${fps} -b:v ${bitrate} -preset fast ${outputFilePath}`;
+        console.log(`Executing command: ${ffmpegCommand}`);
+
+        exec(ffmpegCommand, (error) => {
+            if (error) {
+                console.error(`Error during conversion: ${error.message}`);
+                return res.status(500).json({ error: 'Conversion error.' });
+            }
+
+            console.log(`Conversion completed for: ${outputFilePath}`);
+
+            if (fs.existsSync(outputFilePath)) {
+                fs.unlink(file.path, (err) => {
+                    if (err) {
+                        console.error(`Error deleting uploaded file: ${err.message}`);
+                    } else {
+                        console.log(`Uploaded file deleted: ${file.path}`);
+                    }
+                });
+                scheduleFileDeletion(outputFilePath);
+                res.download(outputFilePath, (err) => {
+                    if (err) {
+                        console.error(`Error sending converted file: ${err.message}`);
+                    }
+                    fs.unlink(outputFilePath, (unlinkErr) => {
+                        if (unlinkErr) {
+                            console.error(`Error deleting converted file: ${unlinkErr.message}`);
+                        } else {
+                            console.log(`Converted file deleted: ${outputFilePath}`);
+                        }
+                    });
+                });
+            } else {
+                const errorMsg = `Output file not created: ${outputFilePath}`;
+                console.error(errorMsg);
+                res.status(500).json({ error: 'Conversion failed.' });
+            }
+        });
+    } catch (error) {
+        console.error(`Error in processing: ${error.message}`);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // Render the privacy policy page
 app.get('/privacy', (req, res) => {
     res.render('privacy');
