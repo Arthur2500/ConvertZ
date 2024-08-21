@@ -109,11 +109,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(`Server returned status: ${response.status}`);
                 }
 
-                const fileType = response.headers.get('filetype');
-                console.log('Filetype header:', fileType);
+                // Get the content-disposition header to extract the filename
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let fileName = 'downloaded_file';
 
-                // Determine the filename based on the file type
-                const fileName = fileType === '.zip' ? 'converted_videos.zip' : `converted_video${fileType}`;
+                if (contentDisposition) {
+                    const match = contentDisposition.match(/filename="?(.+)"?/);
+                    if (match) {
+                        fileName = match[1];
+                    }
+                }
+
+                console.log('Resolved filename:', fileName);
 
                 // Convert the response to a blob and pass it along with the filename
                 return response.blob().then(blob => ({
