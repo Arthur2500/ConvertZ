@@ -53,9 +53,8 @@ SECURITY=enabled node main.js
 
 ## Configuration
 `docker-compose.yml` Environment Settings:
-- `SECURITY`: (enabled/disabled) Enable/Disable Security features such as ratelimit for API and Helmet header protection
-- `Authorization`: API key (if required).
-- `Authorization`: API key (if required).
+- `SECURITY: [enabled/disabled]`: Enable/Disable Security features such as ratelimit for API and Helmet header protection
+- `API_KEY: [none/$CUSTOM_KEY]`: If set to "none," no API authorization is used. Otherwise, the custom string is used as the API key. (see [Request Headers](#request-headers))
 
 ## Screenshots
 ![Screenshot 2024-08-20 215648](https://github.com/user-attachments/assets/a2d7979e-2f71-4f3f-9063-57128690e62a)
@@ -64,9 +63,11 @@ SECURITY=enabled node main.js
 
 ### Upload and Convert Video
 
-**Endpoint**: `/api/upload`
-**Method**: `POST`
-**Description**: Upload and convert a video file to a specified format, resolution, frame rate, and bitrate.
+Endpoint: `/api/upload`
+
+Method: `POST`
+
+Description: Upload and convert a video file to a specified format, resolution, frame rate, and bitrate.
 
 #### Request Headers
 
