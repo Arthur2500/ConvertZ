@@ -23,7 +23,7 @@ if (process.env.SECURITY === 'enabled') {
 // Set up multer for file uploads with file type validation and size limit
 const upload = multer({
     dest: 'uploads/', // Directory to save uploaded files temporarily
-    limits: { fileSize: 500 * 1024 * 1024 }, // 500MB file size limit
+    limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB file size limit
     fileFilter: (req, file, cb) => {
         const allowedMimeTypes = [
             'video/mp4',
@@ -58,16 +58,28 @@ app.get('/', (req, res) => {
 const sanitizeInput = (input, type) => {
     switch (type) {
         case 'resolution':
+            const resolution = parseInt(input, 10);
+            if (isNaN(resolution) || resolution < 50 || resolution > 100 || resolution % 10 !== 0) {
+                throw new Error('Invalid resolution value. It must be a percentage between 50 and 100 in steps of 10.');
+            }
+            return resolution;
         case 'fps':
-            const num = parseInt(input, 10);
-            if (isNaN(num) || num <= 0) throw new Error('Invalid resolution or FPS value.');
-            return num;
+            const fps = parseInt(input, 10);
+            if (isNaN(fps) || fps < 15 || fps > 60) {
+                throw new Error('Invalid FPS value. It must be between 15 and 60.');
+            }
+            return fps;
         case 'bitrate':
-            if (!/^[0-9]+k$/.test(input)) throw new Error('Invalid bitrate format.'); // Validate bitrate format
-            return input;
+            const bitrate = parseInt(input, 10);
+            if (isNaN(bitrate) || bitrate < 1000 || bitrate > 10000 || bitrate % 100 !== 0) {
+                throw new Error('Invalid bitrate value. It must be between 1000 and 10000 kbps in steps of 100.');
+            }
+            return `${bitrate}k`;
         case 'format':
             const allowedFormats = ['mp4', 'avi', 'mkv', 'webm', 'mov'];
-            if (!allowedFormats.includes(input)) throw new Error('Invalid output format.');
+            if (!allowedFormats.includes(input)) {
+                throw new Error('Invalid output format. Allowed formats are mp4, avi, mkv, webm, mov.');
+            }
             return input;
         default:
             throw new Error('Invalid input type.');
@@ -101,7 +113,7 @@ app.post('/upload', upload.array('videos'), (req, res) => {
         const outputFormat = sanitizeInput(format, 'format');
         const sanitizedResolution = sanitizeInput(resolution, 'resolution');
         const sanitizedFps = sanitizeInput(fps, 'fps');
-        const sanitizedBitrate = sanitizeInput(`${bitrate}k`, 'bitrate');
+        const sanitizedBitrate = sanitizeInput(bitrate, 'bitrate');
 
         // Calculate scale factor for video resolution
         const scaleFactor = sanitizedResolution / 100;
