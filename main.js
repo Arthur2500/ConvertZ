@@ -125,7 +125,7 @@ app.post('/upload', upload.array('videos'), (req, res) => {
             .then(convertedFiles => {
                 if (convertedFiles.length === 1) {
                     const file = convertedFiles[0];
-                    res.download(file, err => {
+                    res.download(file, 'converted_video.' + outputFormat, err => {
                         if (err) console.error(`Error sending converted file: ${err.message}`);
                         fs.unlink(file, err => {
                             if (err) console.error(`Error deleting converted file: ${err.message}`);
@@ -142,7 +142,7 @@ app.post('/upload', upload.array('videos'), (req, res) => {
                     });
 
                     output.on('close', () => {
-                        res.download(zipFilePath, err => {
+                        res.download(zipFilePath, 'converted_videos.zip', err => {
                             if (err) console.error(`Error sending zip file: ${err.message}`);
                             fs.unlink(zipFilePath, err => {
                                 if (err) console.error(`Error deleting zip file: ${err.message}`);
