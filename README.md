@@ -87,7 +87,7 @@ Description: Upload and convert a video file to a specified format, resolution, 
 
 - `video`: Video file to upload (multipart/form-data).
 - `format`: Output format (`mp4`, `avi`, `mkv`, `webm`, `mov`).
-- `resolution`: Output resolution, percentage of original resolution in steps of 10, value must be between 50 and 100 (e.g. 80 for 80% of original resolution).
+- `resolution`: Output resolution, percentage of original resolution in steps of 10, value must be between 50 and 100 (e.g. `80` for 80% of original resolution).
 - `fps`: Frame rate in steps of 1, value must be between 15 and 60 (e.g., `30` for 30 FPS).
 - `bitrate`: Video bitrate in kbps in steps of 100, value must be between 1000 and 10000 (e.g., `1000` for 1000 kbps).
 
