@@ -6,6 +6,7 @@ A lightweight video conversion and compression webapp using ffmpeg.
 https://compress.ziemlich-schnell.de
 
 ## How to run:
+### Use Prebuilt Image (Recommended)
 ```
 docker run --name convertz -d -p 3000:3000 ghcr.io/arthur2500/convertz:latest
 ```
@@ -17,13 +18,13 @@ wget https://raw.githubusercontent.com/Arthur2500/ConvertZ/main/docker-compose.y
 docker-compose up -d
 ```
 
-## Build and run Docker image locally
+### Build Docker Image Locally
 ```
 git clone https://github.com/Arthur2500/ConvertZ.git &&
 docker-compose -f docker-compose.local.yml up -d --build
 ```
 
-## Run without Docker
+### Run without Docker
 Requirements:
 ```
 Node.js >= 16
