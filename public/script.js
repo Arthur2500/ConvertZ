@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let fileName = 'downloaded_file';
 
                 if (contentDisposition) {
-                    const match = contentDisposition.match(/filename="?(.+)"?/);
+                    const match = contentDisposition.match(/filename="?([^"]+)"?/);
                     if (match) {
                         fileName = match[1];
                     }
