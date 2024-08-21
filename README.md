@@ -51,5 +51,78 @@ For improved security, set environment variable SECURITY=enabled if exclusively 
 SECURITY=enabled node main.js
 ```
 
+## Configuration
+`docker-compose.yml` Environment Settings:
+- `SECURITY`: (enabled/disabled) Enable/Disable Security features such as ratelimit for API and Helmet header protection
+- `Authorization`: API key (if required).
+- `Authorization`: API key (if required).
+
 ## Screenshots
 ![Screenshot 2024-08-20 215648](https://github.com/user-attachments/assets/a2d7979e-2f71-4f3f-9063-57128690e62a)
+
+## API Endpoint
+
+### Upload and Convert Video
+
+**Endpoint**: `/api/upload`
+**Method**: `POST`
+**Description**: Upload and convert a video file to a specified format, resolution, frame rate, and bitrate.
+
+#### Request Headers
+
+- `Authorization`: API key (if required).
+
+#### Request Body
+
+- `video`: Video file to upload (multipart/form-data).
+- `format`: Output format (`mp4`, `avi`, `mkv`, `webm`, `mov`).
+- `resolution`: Output resolution, percentage of original resolution in steps of 10, value must be between 50 and 100. (e.g. 80 for 80% of original resolution).
+- `fps`: Frame rate in steps of 1, value must be between 15 and 60 (e.g., `30` for 30 FPS).
+- `bitrate`: Video bitrate in kbps in steps of 100, value must be between 1000 and 10000 (e.g., `1000` for 1000 kbps).
+
+#### Response
+
+- **Success**: Downloads the converted video file.
+- **Failure**: JSON with an error message.
+
+### Examples
+
+#### `curl` Example
+
+```sh
+curl -X POST http://localhost:3000/api/upload \
+  -H "Authorization: YOUR_API_KEY" \
+  -F "video=@/path/to/your/video.mp4" \
+  -F "format=mp4" \
+  -F "resolution=80" \
+  -F "fps=30" \
+  -F "bitrate=1000" \
+  -OJ
+```
+
+#### Python Example
+
+```python
+import requests
+
+url = "http://localhost:3000/api/upload"
+headers = {"Authorization": "YOUR_API_KEY"}
+files = {"video": open("/path/to/your/video.mp4", "rb")}
+data = {
+    "format": "mp4",
+    "resolution": "80",
+    "fps": "30",
+    "bitrate": "1000"
+}
+
+response = requests.post(url, headers=headers, files=files, data=data)
+
+if response.status_code == 200:
+    content_disposition = response.headers.get('Content-Disposition')
+    filename = content_disposition.split("filename=")[-1].strip('"')
+    with open(filename, "wb") as f:
+        f.write(response.content)
+    print(f"Video converted successfully and saved as {filename}!")
+else:
+    print("Error:", response.json())
+```

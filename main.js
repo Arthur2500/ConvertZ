@@ -202,7 +202,7 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
     try {
         // Verify API key for security
         const apiKey = process.env.API_KEY;
-        if (apiKey && req.headers['authorization'] !== apiKey) {
+        if (apiKey && apiKey !== "none" && req.headers['authorization'] !== apiKey) {
             return res.status(403).json({ error: 'Forbidden: Invalid API key' });
         }
 

@@ -63,16 +63,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const fps = document.getElementById('fps').value;
             const bitrate = document.getElementById('bitrate').value;
 
-            if (isNaN(resolution) || resolution <= 0 || resolution > 100) {
-                alert('Resolution must be a number between 1 and 100.');
+            if (isNaN(resolution) || resolution < 50 || resolution > 100) {
+                alert('Resolution must be a number between 50 and 100.');
                 return false;
             }
-            if (isNaN(fps) || fps <= 0 || fps > 60) {
-                alert('FPS must be a number between 1 and 60.');
+            if (isNaN(fps) || fps < 15 || fps > 60) {
+                alert('FPS must be a number between 15 and 60.');
                 return false;
             }
-            if (isNaN(bitrate) || bitrate <= 0) {
-                alert('Bitrate must be a positive number.');
+            if (isNaN(bitrate) || bitrate < 1000 || bitrate > 10000) {
+                alert('Bitrate must number between 1000 and 10000.');
                 return false;
             }
             return true;
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Get the content-disposition header to extract the filename
                 const contentDisposition = response.headers.get('Content-Disposition');
-                let fileName = 'downloaded_file';
+                let fileName = '';
 
                 if (contentDisposition) {
                     const match = contentDisposition.match(/filename="?([^"]+)"?/);
