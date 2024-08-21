@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Download completed. URL revoked.');
 
                     // Reset the button to its original state after download
-                    convertButton.textContent = 'Convert and Download';
+                    convertButton.textContent = 'Upload and Convert';
                     convertButton.disabled = false;
                     downloadUrl = ''; // Reset the download URL
                 }
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch((error) => {
                 // Handle any errors during the conversion process
                 console.error('Conversion error:', error);
-                convertButton.textContent = 'Convert and Download';
+                convertButton.textContent = 'Upload and Convert';
                 convertButton.disabled = false;
                 alert('An error occurred during conversion.');
             });
