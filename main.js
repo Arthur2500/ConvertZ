@@ -219,8 +219,9 @@ app.post('/upload', upload.array('videos'), (req, res) => {
         });
 });
 
-// Handle video uploads and conversion through API
 app.post('/api/upload', upload.single('video'), (req, res) => {
+    console.log('Received upload request');
+    
     // Optional API key check
     const apiKey = process.env.API_KEY;
     if (apiKey && req.headers['authorization'] !== apiKey) {
@@ -229,17 +230,21 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
 
     const file = req.file;
     if (!file) {
+        console.log('No file uploaded');
         return res.status(400).json({ error: 'No file uploaded.' });
     }
 
     try {
+        console.log('Sanitizing input...');
         const outputFormat = sanitizeInput(req.body.format, 'format');
         const resolution = sanitizeInput(req.body.resolution, 'resolution');
         const fps = sanitizeInput(req.body.fps, 'fps');
         const bitrate = sanitizeInput(req.body.bitrate + "k", 'bitrate');
 
-        const scaleFactor = parseFloat(resolution) / 100; // Calculate the scale factor from the resolution percentage
-        const scaleFilter = `iw*${scaleFactor}:ih*${scaleFactor}`; // Create the scale filter for ffmpeg
+        console.log(`Inputs - Format: ${outputFormat}, Resolution: ${resolution}, FPS: ${fps}, Bitrate: ${bitrate}`);
+
+        const scaleFactor = parseFloat(resolution) / 100;
+        const scaleFilter = `iw*${scaleFactor}:ih*${scaleFactor}`;
 
         const outputFilePath = path.join('converted', path.basename(`${path.parse(file.filename).name}.${outputFormat}`));
 
@@ -259,6 +264,7 @@ app.post('/api/upload', upload.single('video'), (req, res) => {
             console.log(`Conversion completed for: ${outputFilePath}`);
 
             if (fs.existsSync(outputFilePath)) {
+                console.log('File exists, proceeding to download...');
                 fs.unlink(file.path, (err) => {
                     if (err) {
                         console.error(`Error deleting uploaded file: ${err.message}`);
