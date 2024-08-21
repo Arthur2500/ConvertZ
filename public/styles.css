@@ -1,7 +1,16 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: url('/WPGEN.png') no-repeat center center fixed; /* Background image */
-  background-size: cover; /* Cover the entire background */
+  height: 100vh; /* Ensure the background covers the entire viewport */
+  background: 
+    radial-gradient(circle at top left, pink 30%, transparent 30%),
+    radial-gradient(circle at bottom left, green 30%, transparent 30%),
+    radial-gradient(circle at top, blue 30%, transparent 30%),
+    radial-gradient(circle at bottom, yellow 30%, transparent 30%),
+    radial-gradient(circle at top right, darkblue 30%, transparent 30%),
+    radial-gradient(circle at right, pink 30%, transparent 30%),
+    radial-gradient(circle at bottom right, lime 30%, transparent 30%);
+  background-blend-mode: screen;
+  background-color: white; /* Fallback background color */
   margin: 0;
   padding: 20px;
   color: #000; /* Darker text for better contrast */
