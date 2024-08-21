@@ -51,6 +51,11 @@ For improved security, set environment variable SECURITY=enabled if exclusively 
 SECURITY=enabled node main.js
 ```
 
+API authentication key is also passed via environment variable
+```
+API_KEY=your-api-key-here node main.js
+```
+
 ## Configuration
 `docker-compose.yml` Environment Settings:
 - `SECURITY: [enabled/disabled]`: Enable/Disable Security features such as ratelimit for API and Helmet header protection
