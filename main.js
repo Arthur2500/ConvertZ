@@ -10,7 +10,7 @@ const app = express();
 const port = 3000;
 
 // Conditionally use Helmet based on SECURITY environment variable
-if (process.env.SECURITY !== 'disabled') {
+if (process.env.SECURITY == 'enabled') {
     app.use(helmet()); // Adds security headers to the app using Helmet
 }
 

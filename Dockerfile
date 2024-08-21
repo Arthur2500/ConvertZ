@@ -14,7 +14,7 @@ RUN apt-get update && \
 COPY package*.json ./
 
 # Install dependencies with production flag to avoid dev dependencies in the production build
-RUN npm install --production
+RUN npm install --omit=dev
 
 # Copy the rest of the application code
 COPY . .

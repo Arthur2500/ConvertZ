@@ -46,5 +46,10 @@ Run main.js
 node main.js
 ```
 
+For improved security, set environment variable SECURITY=enabled if exclusively accessed via Cloudflare Tunnel or localhost
+```
+SECURITY=enabled node main.js
+```
+
 ## Screenshots
 ![Screenshot 2024-08-20 215648](https://github.com/user-attachments/assets/a2d7979e-2f71-4f3f-9063-57128690e62a)
