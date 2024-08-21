@@ -1,5 +1,5 @@
 [![Docker Image CI](https://github.com/Arthur2500/ConvertZ/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Arthur2500/ConvertZ/actions/workflows/docker-image.yml)
-# ConvertZ
+# ConvertZ <img src="https://github.com/Arthur2500/ConvertZ/raw/main/public/favicon.ico" alt="Icon" width="24"/>
 A lightweight video conversion and compression webapp using ffmpeg.
 
 ## Demo:
