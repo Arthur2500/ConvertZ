@@ -63,7 +63,7 @@ SECURITY=enabled API_KEY=your-api-key-here node main.js
 
 ## Configuration
 `docker-compose.yml` Environment Settings:
-- `SECURITY: [enabled/disabled]`: Enable/Disable Security features such as ratelimit for API and Helmet header protection
+- `SECURITY: [enabled/disabled]`: Enable/Disable Security features such as Ratelimiting for API and Helmet header protection
 - `API_KEY: [none/$CUSTOM_KEY]`: If set to "none," no API authorization is used. Otherwise, the custom string is used as the API key. (see [Request Headers](#request-headers))
 
 ## Screenshots
