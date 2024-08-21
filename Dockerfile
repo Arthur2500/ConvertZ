@@ -4,9 +4,9 @@ FROM node:22
 # Set the working directory
 WORKDIR /app
 
-# Install ffmpeg and clean up apt cache to reduce image size
+# Install ffmpeg and clean up to reduce image size
 RUN apt-get update && \
-    apt-get install -y ffmpeg && \
+    apt-get install -y --no-install-recommends ffmpeg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
