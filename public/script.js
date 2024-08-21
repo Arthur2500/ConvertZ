@@ -15,12 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Define preset configurations for video conversion
         const presets = {
             low: {
-                resolution: 50, // 50% of the original resolution
+                resolution: 60, // 60% of the original resolution
                 fps: 24,
                 bitrate: 2000 // 2000 kbps
             },
             medium: {
-                resolution: 75, // 75% of the original resolution
+                resolution: 80, // 80% of the original resolution
                 fps: 30,
                 bitrate: 5000 // 5000 kbps
             },
