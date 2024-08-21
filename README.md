@@ -71,8 +71,6 @@ SECURITY=enabled API_KEY=your-api-key-here node main.js
 
 ## API Endpoint
 
-### Upload and Convert Video
-
 Endpoint: `/api/upload`
 
 Method: `POST`
