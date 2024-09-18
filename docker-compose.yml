@@ -1,4 +1,3 @@
-version: '3'
 services:
   convertz:
     image: ghcr.io/arthur2500/convertz:latest
