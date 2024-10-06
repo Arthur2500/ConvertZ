@@ -10,6 +10,13 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const port = 3000;
 
+const convertedDir = path.join(__dirname, 'converted');
+
+// Check if the 'converted' directory exists, and if not, create it
+if (!fs.existsSync(convertedDir)) {
+    fs.mkdirSync(convertedDir, { recursive: true });
+}
+
 // Use Helmet and Ratelimit for enhanced security if the SECURITY environment variable is enabled
 if (process.env.SECURITY === 'enabled') {
     app.use(helmet());
