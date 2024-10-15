@@ -8,7 +8,7 @@ https://compress.ziemlich-schnell.de
 ## How to run:
 ### Use Prebuilt Image (Recommended)
 ```
-docker run --name convertz --env SECURITY=disabled --env API_KEY=none -d -p 3000:3000 ghcr.io/arthur2500/convertz:latest 
+docker run --name convertz -p 3000:3000 -e NODE_ENV=production -e SECURITY=enabled -e API_KEY=none -v ./uploads:/app/uploads -v ./converted:/app/converted --restart unless-stopped ghcr.io/arthur2500/convertz:latest
 ```
 or
 ```
