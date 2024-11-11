@@ -19,7 +19,14 @@ if (!fs.existsSync(convertedDir)) {
 
 // Use Helmet and Ratelimit for enhanced security if the SECURITY environment variable is enabled
 if (process.env.SECURITY === 'enabled') {
-    app.use(helmet());
+    app.use(
+        helmet.contentSecurityPolicy({
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "https://static.cloudflareinsights.com"],
+            },
+        })
+    );
     const apiLimiter = rateLimit({
         windowMs: 5 * 60 * 1000, // 5 minutes
         max: 100 // limit each IP to 100 requests per windowMs
