@@ -1,0 +1,7 @@
+.github/*
+.git/*
+.gitignore
+.gitattributes
+Dockerfile
+docker-compose.yml
+docker-compose.local.yml
